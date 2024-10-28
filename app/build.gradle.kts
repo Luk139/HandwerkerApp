@@ -68,6 +68,17 @@ dependencies {
     implementation(libs.androidx.window)
     implementation(libs.androidx.appcompat)
 
+    // CameraX Abhängigkeiten
+    val camerax_version = "1.1.0"
+    implementation("androidx.camera:camera-core:$camerax_version")
+    implementation("androidx.camera:camera-camera2:$camerax_version")
+    implementation("androidx.camera:camera-lifecycle:$camerax_version")
+    implementation("androidx.camera:camera-view:$camerax_version")
+    implementation("androidx.camera:camera-extensions:$camerax_version")
+
+    // ARCore Abhängigkeit
+    implementation("com.google.ar:core:1.30.0")
+
     // Test-Abhängigkeiten
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
