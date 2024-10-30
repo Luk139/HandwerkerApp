@@ -49,11 +49,17 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             startCalibration()
         }
 
-        // Button für den Start der Kamera-Ansicht
         val btnOpenCamera: Button = findViewById(R.id.btnOpenCamera)
         btnOpenCamera.setOnClickListener {
             // Wechselt zur CameraActivity
             val intent = Intent(this, CameraActivity::class.java)
+            startActivity(intent)
+        }
+
+        val btnOpenSpiritLevel: Button = findViewById(R.id.btnOpenSpiritLevel)
+        btnOpenSpiritLevel.setOnClickListener {
+            // Wechselt zur CameraActivity
+            val intent = Intent(this, SpiritLevelActivity::class.java)
             startActivity(intent)
         }
 

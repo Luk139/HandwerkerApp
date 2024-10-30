@@ -28,11 +28,16 @@
         android:textSize="18sp"
         android:visibility="gone" />
 
-    <!-- Neuer Button zum Starten der Kamera-Activity -->
     <Button
         android:id="@+id/btnOpenCamera"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Zur Kamera-Ansicht" />
+
+    <Button
+        android:id="@+id/btnOpenSpiritLevel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Zur Wasserwaage" />
 
 </LinearLayout>

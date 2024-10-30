@@ -24,8 +24,9 @@
             </intent-filter>
         </activity>
 
-        <!-- Registrierung der CameraActivity -->
         <activity android:name=".CameraActivity"
+            android:exported="true" />
+        <activity android:name=".SpiritLevelActivity"
             android:exported="true" />
 
     </application>
