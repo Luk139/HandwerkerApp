@@ -1,168 +1,308 @@
 package com.example.hingesensornew
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
-import android.widget.Button
-import android.widget.TextView
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.Preview
-import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.view.PreviewView
-import androidx.core.content.ContextCompat
-import com.google.ar.core.Anchor
-import com.google.ar.core.HitResult
-import com.google.ar.core.Point
-import com.google.ar.core.Session
-import com.google.ar.core.exceptions.UnavailableException
-import android.view.View
+import android.view.MotionEvent
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
-class CameraActivity : AppCompatActivity() {
+import com.google.android.filament.Engine
+import com.google.ar.core.Config
+import com.google.ar.core.Frame
+import io.github.sceneview.ar.ARSceneView
+import io.github.sceneview.ar.ARScene
+import io.github.sceneview.ar.arcore.hitTest
+import io.github.sceneview.collision.HitResult
+import io.github.sceneview.loaders.MaterialLoader
+import io.github.sceneview.math.Position
+import io.github.sceneview.math.Rotation
+import io.github.sceneview.node.CubeNode
+import io.github.sceneview.node.CylinderNode
+import io.github.sceneview.node.ModelNode
+import io.github.sceneview.node.Node
+import io.github.sceneview.node.SphereNode
+import io.github.sceneview.rememberCameraNode
+import io.github.sceneview.rememberCollisionSystem
+import io.github.sceneview.rememberEngine
+import io.github.sceneview.rememberEnvironment
+import io.github.sceneview.rememberEnvironmentLoader
+import io.github.sceneview.rememberMainLightNode
+import io.github.sceneview.rememberMaterialLoader
+import io.github.sceneview.rememberModelLoader
+import io.github.sceneview.rememberNodes
+import io.github.sceneview.rememberOnGestureListener
+import io.github.sceneview.rememberRenderer
+import io.github.sceneview.rememberScene
+import io.github.sceneview.rememberView
 
-    private lateinit var previewView: PreviewView
-    private lateinit var btnPlacePoint: Button
-    private lateinit var tvDistance: TextView
-    private lateinit var marker: View
-
-    private var session: Session? = null
-    private var firstPointAnchor: Anchor? = null
-    private var secondPointAnchor: Anchor? = null
-
-    private val cameraPermissionRequest = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
-        if (isGranted) {
-            startARSession()
-        } else {
-            tvDistance.text = "Kamera-Berechtigung nicht gewährt"
-        }
-    }
-
+class CameraActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_camera)
-
-        previewView = findViewById(R.id.previewView)
-        btnPlacePoint = findViewById(R.id.btnPlacePoint)
-        tvDistance = findViewById(R.id.tvDistance)
-        marker = findViewById(R.id.marker)
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-            startARSession()
-        } else {
-            cameraPermissionRequest.launch(Manifest.permission.CAMERA)
-        }
-
-        btnPlacePoint.setOnClickListener {
-            placePoint()
-        }
-    }
-
-    private fun isARCoreSupported(): Boolean {
-        return try {
-            Session(this)
-            true
-        } catch (e: UnavailableException) {
-            Log.e("CameraActivity", "ARCore nicht unterstützt: ${e.message}")
-            false
-        }
-    }
-
-    private fun startARSession() {
-        if (!isARCoreSupported()) {
-            tvDistance.text = "ARCore wird auf diesem Gerät nicht unterstützt."
-            return
-        }
-
-        if (session == null) {
-            try {
-                session = Session(this) // Sitzungsobjekt nur einmal erstellen
-                session?.resume() // Sitzung fortsetzen
-                startCamera() // Kamera erst nach erfolgreicher Sitzungsinitialisierung starten
-            } catch (e: UnavailableException) {
-                Log.e("CameraActivity", "ARCore-Sitzung nicht verfügbar: ${e.message}")
+        enableEdgeToEdge()
+        setContent {
+                ARScreen()
             }
-        } else {
-            session?.resume() // Falls die Sitzung bereits existiert, fortsetzen
         }
     }
 
-    private fun startCamera() {
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+@Composable
+fun ARScreen() {
+    val engine = rememberEngine()
+    val view = rememberView(engine)
+    val renderer = rememberRenderer(engine)
+    val scene = rememberScene(engine)
+    val modelLoader = rememberModelLoader(engine)
+    val materialLoader = rememberMaterialLoader(engine)
+    val environmentLoader = rememberEnvironmentLoader(engine)
+    val collisionSystem = rememberCollisionSystem(view)
+    val cameraNode = rememberCameraNode(engine)
 
-        cameraProviderFuture.addListener({
-            try {
-                val cameraProvider = cameraProviderFuture.get()
-                val preview = Preview.Builder().build().apply {
-                    setSurfaceProvider(previewView.surfaceProvider)
-                }
+    val nodes = rememberNodes()
 
-                val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-                cameraProvider.unbindAll() // Verhindert doppeltes Binden
-                cameraProvider.bindToLifecycle(this, cameraSelector, preview)
-            } catch (e: Exception) {
-                Log.e("CameraActivity", "Fehler beim Starten der Kamera: ${e.message}")
-            }
-        }, ContextCompat.getMainExecutor(this))
-    }
+    var currentFrame by remember { mutableStateOf<Frame?>(null) }
 
-    private fun placePoint() {
-        if (session == null) {
-            Log.e("CameraActivity", "Sitzung ist null")
-            return
-        }
+    val spherePositions = remember { mutableListOf<Position>() }
 
-        try {
-            val frame = session!!.update() // Frame aktualisieren
-            val hitResult: HitResult? = frame.hitTest(previewView.width / 2f, previewView.height / 2f)?.firstOrNull()
+    var distance by remember { mutableStateOf("- cm") }
 
-            if (hitResult != null && hitResult.trackable is Point) {
-                val newAnchor = hitResult.createAnchor()
+    var cubeNode: Node? by remember { mutableStateOf(null) }
 
-                if (firstPointAnchor == null) {
-                    firstPointAnchor = newAnchor
-                    tvDistance.text = "Erster Punkt gesetzt"
-                    marker.visibility = View.GONE // Marker ausblenden
-                } else if (secondPointAnchor == null) {
-                    secondPointAnchor = newAnchor
-                    calculateDistance()
-                }
+    val cubeNodes = remember { mutableListOf<Node>() }
+
+    ARScene(
+        modifier = Modifier.fillMaxSize(),
+        engine = engine,
+        view = view,
+        renderer = renderer,
+        scene = scene,
+        modelLoader = modelLoader,
+        materialLoader = materialLoader,
+        environmentLoader = environmentLoader,
+        collisionSystem = collisionSystem,
+        isOpaque = true,
+        planeRenderer = false,
+        mainLightNode = rememberMainLightNode(engine) {
+            intensity = 100_000.0f
+            transform(
+                position = Position(0f, 100f, 0f),
+                rotation = Rotation(x = 0f, y = 0f, z = 0f)
+            )
+        },
+        sessionConfiguration = { session, config ->
+            config.depthMode = if (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
+                Config.DepthMode.AUTOMATIC
             } else {
-                Log.e("CameraActivity", "Hit result ist null oder kein Punkt")
+                Config.DepthMode.DISABLED
             }
-        } catch (e: Exception) {
-            Log.e("CameraActivity", "Fehler beim Aktualisieren der Sitzung: ${e.message}")
+            config.instantPlacementMode = Config.InstantPlacementMode.LOCAL_Y_UP
+            config.lightEstimationMode = Config.LightEstimationMode.ENVIRONMENTAL_HDR
+        },
+        childNodes = nodes,
+        onTouchEvent = { event, _ ->
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                val hitResults = currentFrame?.hitTest(event.x, event.y)
+                hitResults?.firstOrNull()?.let { hitResult ->
+                    val hitPosition = hitResult.hitPose.translation
+                    val positionInFrontOfCamera = Position(
+                        x = hitPosition[0],
+                        y = hitPosition[1],
+                        z = hitPosition[2]
+                    )
+                    if (spherePositions.size < 2) {
+                        val newSphere = SphereNode(
+                            engine = engine,
+                            radius = 0.025f,
+                            materialInstance = materialLoader.createColorInstance(
+                                color = Color.Black,
+                                metallic = 0.0f,
+                                roughness = 0.0f,
+                                reflectance = 0.0f
+                            )
+                        ).apply {
+                            transform(
+                                position = positionInFrontOfCamera,
+                                rotation = Rotation(x = 0.0f)
+                            )
+                        }
+                        nodes.add(newSphere)
+                        spherePositions.add(positionInFrontOfCamera)
+
+                        if (spherePositions.size == 2) {
+                            distance = calculateDistance(spherePositions[0], spherePositions[1])
+                            cubeNodes.forEach { nodes.remove(it) }
+                            cubeNodes.clear()
+
+                            placeSpheresAlongPath(
+                                engine = engine,
+                                nodes = nodes,
+                                materialLoader = materialLoader,
+                                startPosition = spherePositions[0],
+                                endPosition = spherePositions[1],
+                                cubeNodes = cubeNodes
+                            )
+                        }
+                    } else {
+                        val firstSphere = nodes.firstOrNull() as? SphereNode
+                        firstSphere?.let {
+                            nodes.remove(it)
+                        }
+                        spherePositions.removeAt(0)
+
+                        spherePositions.add(positionInFrontOfCamera)
+
+                        val newSphere = SphereNode(
+                            engine = engine,
+                            radius = 0.025f,
+                            materialInstance = materialLoader.createColorInstance(
+                                color = Color.Black,
+                                metallic = 0.0f,
+                                roughness = 0.0f,
+                                reflectance = 0.0f
+                            )
+                        ).apply {
+                            transform(
+                                position = positionInFrontOfCamera,
+                                rotation = Rotation(x = 0.0f)
+                            )
+                        }
+                        nodes.add(newSphere)
+
+                        if (spherePositions.size == 2) {
+                            distance = calculateDistance(spherePositions[0], spherePositions[1])
+                            cubeNodes.forEach { nodes.remove(it) }
+                            cubeNodes.clear()
+
+                            placeSpheresAlongPath(
+                                engine = engine,
+                                nodes = nodes,
+                                materialLoader = materialLoader,
+                                startPosition = spherePositions[0],
+                                endPosition = spherePositions[1],
+                                cubeNodes = cubeNodes
+                            )
+                        }
+                    }
+                }
+                return@ARScene true
+            }
+            return@ARScene false
+        },
+        onSessionUpdated = { _, frame ->
+            currentFrame = frame
         }
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        contentAlignment = Alignment.BottomCenter
+    ) {
+        Button(
+            onClick = {},
+            content = { Text("Add Point") }
+        )
     }
 
-    private fun calculateDistance() {
-        if (firstPointAnchor == null || secondPointAnchor == null) return
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val canvasWidth = size.width
+        val canvasHeight = size.height
+        val circleRadius = 10f
+        val centerX = canvasWidth / 2
+        val centerY = canvasHeight / 2
 
-        val firstTranslation = firstPointAnchor!!.pose.translation
-        val secondTranslation = secondPointAnchor!!.pose.translation
-
-        val dx = firstTranslation[0] - secondTranslation[0]
-        val dy = firstTranslation[1] - secondTranslation[1]
-        val dz = firstTranslation[2] - secondTranslation[2]
-
-        val distanceMeters = Math.sqrt((dx * dx + dy * dy + dz * dz).toDouble())
-        tvDistance.text = "Entfernung: %.2f m".format(distanceMeters)
+        drawCircle(
+            color = Color.White,
+            radius = circleRadius,
+            center = Offset(centerX, centerY)
+        )
     }
 
-    override fun onPause() {
-        super.onPause()
-        Log.d("CameraActivity", "Pausing AR session")
-        session?.pause() // Sitzung pausieren
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .offset(y = 100.dp),
+        contentAlignment = Alignment.TopCenter
+    ) {
+        Text(
+            text = "Distance: $distance",
+            color = Color.White,
+            style = TextStyle(fontSize = 32.sp)
+        )
     }
+}
 
-    override fun onResume() {
-        super.onResume()
-        Log.d("CameraActivity", "Resuming AR session")
+fun placeSpheresAlongPath(
+    engine: Engine,
+    nodes: MutableList<Node>,
+    materialLoader: MaterialLoader,
+    startPosition: Position,
+    endPosition: Position,
+    cubeNodes: MutableList<Node>
+) {
+    // Define the number of spheres we want to place along the path
+    val numberOfSpheres = 10
 
-        // Falls Kamera-Berechtigung erteilt, die Sitzung nur dann fortsetzen, wenn sie aktiv ist
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-            session?.resume() // Sitzung fortsetzen, falls sie existiert
+    // Calculate the increments for each axis to place the spheres evenly along the path
+    val dx = (endPosition.x - startPosition.x) / (numberOfSpheres - 1)
+    val dy = (endPosition.y - startPosition.y) / (numberOfSpheres - 1)
+    val dz = (endPosition.z - startPosition.z) / (numberOfSpheres - 1)
+
+    // Clear any previously placed spheres along the path
+    cubeNodes.forEach { nodes.remove(it) }
+    cubeNodes.clear()
+
+    // Place exactly 10 spheres along the path
+    for (i in 0 until numberOfSpheres) {
+        val spherePosition = Position(
+            x = startPosition.x + dx * i,
+            y = startPosition.y + dy * i,
+            z = startPosition.z + dz * i
+        )
+        val sphereNode = SphereNode(
+            engine = engine,
+            radius = 0.005f,
+            materialInstance = materialLoader.createColorInstance(
+                color = Color.Yellow,
+                metallic = 0.0f,
+                roughness = 0.0f,
+                reflectance = 0.0f
+            )
+        ).apply {
+            transform(position = spherePosition)
         }
+        nodes.add(sphereNode)
+        cubeNodes.add(sphereNode)
     }
+}
+
+
+fun calculateDistance(position1: Position, position2: Position): String {
+    val dx = position2.x - position1.x
+    val dy = position2.y - position1.y
+    val dz = position2.z - position1.z
+    val distance = Math.sqrt((dx * dx + dy * dy + dz * dz).toDouble())
+    return String.format("%.2f cm", distance * 100)
 }

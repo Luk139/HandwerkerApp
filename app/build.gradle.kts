@@ -89,4 +89,6 @@ dependencies {
     // Debug-Abhängigkeiten
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    implementation("io.github.sceneview:arsceneview:2.2.1")
 }
