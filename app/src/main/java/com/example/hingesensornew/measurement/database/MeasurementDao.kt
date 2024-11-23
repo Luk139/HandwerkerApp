@@ -15,11 +15,10 @@ interface MeasurementDao {
     @Update
     suspend fun updateMeasurement(measurementEntity: MeasurementEntity)
 
-    @Transaction
-    @Query("SELECT * FROM MeasurementEntity")
-    suspend fun getAllMeasurementsWithHingeSensorItem(): List<MeasurementAndHingeSensorItem>
-
     @Delete
     suspend fun deleteMeasurement(measurementEntity: MeasurementEntity)
-    
+
+    @Transaction
+    @Query("SELECT * FROM MeasurementEntity")
+    suspend fun getAllMeasurementsWithDistanceItemAndHingeSensorItem(): List<MeasurementAndDistanceItemAndHingeSensorItem>
 }

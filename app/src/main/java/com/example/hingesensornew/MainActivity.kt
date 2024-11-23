@@ -15,11 +15,32 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.lifecycleScope
+import com.example.hingesensornew.distance.database.DistanceItemDatabase
+import com.example.hingesensornew.distance.database.DistanceItemRepository
+import com.example.hingesensornew.hingesensor.database.HingeSensorItemDatabase
+import com.example.hingesensornew.hingesensor.database.HingeSensorRepository
+import com.example.hingesensornew.measurement.database.MeasurementDatabase
+import com.example.hingesensornew.measurement.database.MeasurementRepository
 import com.example.hingesensornew.ui.theme.HingeSensorNewTheme
 import kotlin.math.acos
 import kotlin.math.sqrt
 
 class MainActivity : ComponentActivity(), SensorEventListener {
+    // Initialize Databases
+    val measurementDatabase = MeasurementDatabase.getDatabase(applicationContext, lifecycleScope)
+    val hingeSensorItemDatabase = HingeSensorItemDatabase.getDatabase(applicationContext, lifecycleScope)
+    val distanceItemDatabase = DistanceItemDatabase.getDatabase(applicationContext, lifecycleScope)
+
+    //Initialize DAOs
+    val measurementDao = measurementDatabase.measurementDao()
+    val distanceItemDao = distanceItemDatabase.distanceItemDao()
+    val hingeSensorItemDao = hingeSensorItemDatabase.hingeSensorItemDao()
+
+    //Initialize Repositories
+    val measurementRepository = MeasurementRepository(measurementDao)
+    val distanceItemRepository = DistanceItemRepository(distanceItemDao)
+    val hingeSensorRepository = HingeSensorRepository(hingeSensorItemDao)
 
     private lateinit var sensorManager: SensorManager
     private var hingeAngleSensor: Sensor? = null

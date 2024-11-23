@@ -26,17 +26,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.hingesensornew.distance.DistanceItem
+import com.example.hingesensornew.distance.database.DistanceItemEntity
 import com.example.hingesensornew.hingesensor.HingeSensorItem
 import com.example.hingesensornew.hingesensor.database.HingeSensorItemEntity
+import com.example.hingesensornew.measurement.database.MeasurementAndDistanceItemAndHingeSensorItem
 import com.example.hingesensornew.measurement.database.MeasurementAndHingeSensorItem
 import com.example.hingesensornew.measurement.database.MeasurementEntity
 
 @Composable
 fun Measurement(
-    measurementAndHingeSensorItem: MeasurementAndHingeSensorItem,
+    measurementAndDistanceItemAndHingeSensorItem: MeasurementAndDistanceItemAndHingeSensorItem,
     onMeasurementAddClick:()->Unit,
     onMeasurementDeleteClick:()->Unit,
     onHingeSensorDeleteClick:()->Unit,
+    onDistanceDeleteClick:()-> Unit,
     modifier: Modifier = Modifier
 ) {
     var isExpanded by remember { mutableStateOf(false) }
@@ -57,7 +61,7 @@ fun Measurement(
                 .padding(8.dp)
         ){
             Text(
-                text = measurementAndHingeSensorItem.measurementEntity.title,
+                text = measurementAndDistanceItemAndHingeSensorItem.measurementEntity.title,
                 modifier = Modifier.weight(1f)
             )
             IconButton(
@@ -78,10 +82,16 @@ fun Measurement(
                 thickness = 1.dp,
                 color = Color.Black
             )
-            for(hingeSensorEntity in measurementAndHingeSensorItem.hingeSensorItems){
+            for(hingeSensorEntity in measurementAndDistanceItemAndHingeSensorItem.hingeSensorItems){
                 HingeSensorItem(
                     hingeSensorEntity,
                     onHingeSensorDeleteClick
+                )
+            }
+            for(distanceEntity in measurementAndDistanceItemAndHingeSensorItem.distanceItems){
+                DistanceItem(
+                    distanceEntity,
+                    onDistanceDeleteClick
                 )
             }
         }
@@ -94,32 +104,52 @@ fun Measurement(
 @Composable
 private fun MeasurementItemPreview() {
 
-    val list = mutableListOf<HingeSensorItemEntity>()
-    list.add(
+    val hingeSensorList = mutableListOf<HingeSensorItemEntity>()
+    val distanceSensorList = mutableListOf<DistanceItemEntity>()
+    hingeSensorList.add(
             HingeSensorItemEntity(
                 1,
                 "Test 1",
                 12.33f,
-                2
+                1
             )
     )
-    list.add(
+    hingeSensorList.add(
         HingeSensorItemEntity(
-            1,
+            2,
             "Test 2",
             15.33f,
-            2
+            1
         )
+    )
+    distanceSensorList.add(
+        DistanceItemEntity(
+            1,
+            "Test 1",
+            15.33f,
+            1
+        )
+    )
+    distanceSensorList.add(
+        DistanceItemEntity(
+            2,
+            "Test 2",
+            15.33f,
+            1
+        )
+    )
+    val measurementEntity = MeasurementEntity(
+        1,
+        "Test"
     )
     MaterialTheme {
         Measurement(
-            MeasurementAndHingeSensorItem(
-                MeasurementEntity(
-                    1,
-                    "Test"
-                ),
-                list
+            MeasurementAndDistanceItemAndHingeSensorItem(
+                measurementEntity,
+                distanceSensorList,
+                hingeSensorList
             ),
+            {},
             {},
             {},
             {}
