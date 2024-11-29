@@ -1,142 +1,129 @@
 package com.example.hingesensornew
 
 import android.content.Context
-import android.hardware.*
-import android.os.Build
+import android.content.Intent
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.hingesensornew.ui.theme.HingeSensorNewTheme
-import kotlin.math.acos
-import kotlin.math.sqrt
+import android.os.CountDownTimer
+import android.widget.Button
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 
-class MainActivity : ComponentActivity(), SensorEventListener {
+class MainActivity : AppCompatActivity(), SensorEventListener {
 
     private lateinit var sensorManager: SensorManager
-    private var hingeAngleSensor: Sensor? = null
-    private var accelerometer: Sensor? = null
-    private var gyroscope: Sensor? = null
-    private var foldAngle: Float by mutableFloatStateOf(0f)
-    private var accelerationData = FloatArray(3)
-    private var gyroscopeData = FloatArray(3)
+    private lateinit var gyroscope: Sensor
+    private lateinit var tvCurrentAngle: TextView
+    private lateinit var btnCalibrate: Button
+    private lateinit var tvCountdown: TextView
 
-    @RequiresApi(Build.VERSION_CODES.R)
+    // Gyroscope calibration values
+    private var calGyroX = 0.0
+    private var calGyroY = 0.0
+    private var calGyroZ = 0.0
+
+    // Angle value
+    private var currentAngle = 0 // Start bei 180°
+
+    // Countdown timer
+    private var countdownTimer: CountDownTimer? = null
+
+    // Flag to check if calibration is in progress
+    private var isCalibrating = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        setContentView(R.layout.activity_main)
+
+        tvCurrentAngle = findViewById(R.id.tvCurrentAngle)
+        btnCalibrate = findViewById(R.id.btnCalibrate)
+        tvCountdown = findViewById(R.id.tvCountdown)
 
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        hingeAngleSensor = sensorManager.getDefaultSensor(Sensor.TYPE_HINGE_ANGLE)
-        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-        gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
+        gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)!!
 
-        hingeAngleSensor?.also {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
-        }
-        accelerometer?.also {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
-        }
-        gyroscope?.also {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
+        btnCalibrate.setOnClickListener {
+            startCalibration()
         }
 
-        setContent {
-            HingeSensorNewTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Fold Angle: ${foldAngle.toInt()}°",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+        val btnOpenCamera: Button = findViewById(R.id.btnOpenCamera)
+        btnOpenCamera.setOnClickListener {
+            // Wechselt zur CameraActivity
+            val intent = Intent(this, CameraActivity::class.java)
+            startActivity(intent)
+        }
+
+        val btnOpenSpiritLevel: Button = findViewById(R.id.btnOpenSpiritLevel)
+        btnOpenSpiritLevel.setOnClickListener {
+            // Wechselt zur CameraActivity
+            val intent = Intent(this, SpiritLevelActivity::class.java)
+            startActivity(intent)
+        }
+
+        startCalibration()
+    }
+
+    private fun startCalibration() {
+        // Start countdown for calibration
+        tvCountdown.visibility = TextView.VISIBLE
+        countdownTimer?.cancel() // Cancel any existing timer
+
+        isCalibrating = true // Set calibration flag
+
+        countdownTimer = object : CountDownTimer(3000, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                tvCountdown.text = "Countdown: ${millisUntilFinished / 1000}"
             }
+
+            override fun onFinish() {
+                tvCountdown.text = "Kalibrierung abgeschlossen"
+                tvCountdown.visibility = TextView.GONE
+                calibrateGyroscope()
+                isCalibrating = false // Reset calibration flag
+            }
+        }.start()
+    }
+
+    private fun calibrateGyroscope() {
+        // Setze die Kalibrierungswerte auf 0
+        calGyroX = 0.0
+        calGyroY = 0.0
+        calGyroZ = 0.0
+        currentAngle = 0 // Nach der Kalibrierung auf 180 setzen
+    }
+
+    override fun onSensorChanged(event: SensorEvent?) {
+        if (event != null && event.sensor.type == Sensor.TYPE_GYROSCOPE) {
+            // Ignore sensor updates if calibrating
+            if (isCalibrating) return
+
+            val gyroY = event.values[1] - calGyroY // Nehmen Sie den Y-Wert für die Berechnung
+
+            // Berechnung des Winkels
+            // Reduzieren Sie den aktuellen Winkel basierend auf der Gyroskopbewegung
+            currentAngle -= (gyroY * 13.5).toInt() // Multiplikation für bessere Sensitivität
+            currentAngle = currentAngle.coerceIn(0, 180) // Beschränkung zwischen 0 und 180
+
+            // Aktualisieren Sie die TextView mit dem aktuellen Winkel
+            val tmpangel = 180 - currentAngle
+            tvCurrentAngle.text = "Aktueller Winkel: $tmpangel°"
         }
     }
 
-    override fun onSensorChanged(event: SensorEvent) {
-        when (event.sensor.type) {
-            Sensor.TYPE_HINGE_ANGLE -> {
-                val hingeAngle = event.values[0]
-                when {
-                    hingeAngle == 90f -> {
-                        foldAngle = calculateFoldAngle()
-                    }
-                    hingeAngle == 0f || hingeAngle == 180f -> {
-                        foldAngle = hingeAngle
-                    }
-                    else -> {
-                        foldAngle = hingeAngle
-                    }
-                }
-            }
-            Sensor.TYPE_ACCELEROMETER -> {
-                accelerationData = event.values.clone()
-                if (hingeAngleSensor != null) {
-                    foldAngle = calculateFoldAngle()
-                }
-            }
-            Sensor.TYPE_GYROSCOPE -> {
-                gyroscopeData = event.values.clone()
-            }
-        }
-    }
-
-    private fun calculateFoldAngle(): Float {
-        val xAcc = accelerationData[0]
-        val yAcc = accelerationData[1]
-        val zAcc = accelerationData[2]
-
-        val accelerationMagnitude = sqrt(xAcc * xAcc + yAcc * yAcc + zAcc * zAcc)
-        val normalizedZ = zAcc / accelerationMagnitude
-
-        return Math.toDegrees(acos(normalizedZ.toDouble())).toFloat()
-    }
-
-
-
-    override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+        // Nicht benötigt
     }
 
     override fun onResume() {
         super.onResume()
-        hingeAngleSensor?.also {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
-        }
-        accelerometer?.also {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
-        }
-        gyroscope?.also {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
-        }
+        sensorManager.registerListener(this, gyroscope, SensorManager.SENSOR_DELAY_NORMAL)
     }
 
     override fun onPause() {
         super.onPause()
         sensorManager.unregisterListener(this)
-    }
-
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    HingeSensorNewTheme {
-        Greeting("Android")
     }
 }

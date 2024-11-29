@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="@android:color/white">
+
+    <!-- TextView für die Anzeige der Neigung -->
+    <TextView
+        android:id="@+id/levelText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Neigung: 0.00°"
+        android:textSize="24sp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="20dp"
+        android:layout_alignParentTop="true"/>
+
+    <!-- Container für die Wasserwaage -->
+    <RelativeLayout
+        android:id="@+id/levelContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/levelText"
+        android:layout_marginTop="20dp">
+
+        <!-- Horizontale Wasserwaage -->
+        <View
+            android:id="@+id/horizontalLine"
+            android:layout_width="200dp"
+            android:layout_height="2dp"
+            android:background="@android:color/darker_gray"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"/>
+
+        <!-- Vertikale Wasserwaage -->
+        <View
+            android:id="@+id/verticalLine"
+            android:layout_width="2dp"
+            android:layout_height="200dp"
+            android:background="@android:color/darker_gray"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"/>
+
+        <!-- Punkt für die horizontale Wasserwaage -->
+        <View
+            android:id="@+id/horizontalIndicator"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:background="@android:color/holo_green_light"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"/>
+
+        <!-- Punkt für die vertikale Wasserwaage -->
+        <View
+            android:id="@+id/verticalIndicator"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:background="@android:color/holo_green_light"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"/>
+
+        <!-- Zentrale umrandete Box -->
+        <View
+            android:id="@+id/centralBox"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_centerInParent="true"
+            android:background="@drawable/outline_box" /> <!-- Hier wird die Umrandung gesetzt -->
+    </RelativeLayout>
+
+</RelativeLayout>
