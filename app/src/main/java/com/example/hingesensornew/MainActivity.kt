@@ -8,114 +8,94 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Bundle
 import android.os.CountDownTimer
-import android.widget.Button
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.hingesensornew.ui.theme.HingeSensorNewTheme
 
-class MainActivity : AppCompatActivity(), SensorEventListener {
+class MainActivity : ComponentActivity(), SensorEventListener {
 
     private lateinit var sensorManager: SensorManager
     private lateinit var gyroscope: Sensor
-    private lateinit var tvCurrentAngle: TextView
-    private lateinit var btnCalibrate: Button
-    private lateinit var tvCountdown: TextView
 
-    // Gyroscope calibration values
     private var calGyroX = 0.0
     private var calGyroY = 0.0
     private var calGyroZ = 0.0
 
-    // Angle value
-    private var currentAngle = 0 // Start bei 180°
-
-    // Countdown timer
-    private var countdownTimer: CountDownTimer? = null
-
-    // Flag to check if calibration is in progress
-    private var isCalibrating = false
+    private val currentAngleState = mutableStateOf(180) // Startwert für den Winkel
+    private val isCalibratingState = mutableStateOf(false)
+    private val countdownTextState = mutableStateOf("Countdown: 3")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
-        tvCurrentAngle = findViewById(R.id.tvCurrentAngle)
-        btnCalibrate = findViewById(R.id.btnCalibrate)
-        tvCountdown = findViewById(R.id.tvCountdown)
 
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)!!
 
-        btnCalibrate.setOnClickListener {
-            startCalibration()
-        }
-
-        val btnOpenCamera: Button = findViewById(R.id.btnOpenCamera)
-        btnOpenCamera.setOnClickListener {
-            // Wechselt zur CameraActivity
-            val intent = Intent(this, CameraActivity::class.java)
-            startActivity(intent)
-        }
-
-        val btnOpenSpiritLevel: Button = findViewById(R.id.btnOpenSpiritLevel)
-        btnOpenSpiritLevel.setOnClickListener {
-            // Wechselt zur CameraActivity
-            val intent = Intent(this, SpiritLevelActivity::class.java)
-            startActivity(intent)
+        setContent {
+            HingeSensorNewTheme {
+                MainActivityScreen(
+                    currentAngle = currentAngleState.value,
+                    isCalibrating = isCalibratingState.value,
+                    countdownText = countdownTextState.value,
+                    onCalibrate = { startCalibration() },
+                    onOpenCamera = {
+                        val intent = Intent(this, CameraActivity::class.java)
+                        startActivity(intent)
+                    },
+                    onOpenSpiritLevel = {
+                        val intent = Intent(this, SpiritLevelActivity::class.java)
+                        startActivity(intent)
+                    }
+                )
+            }
         }
 
         startCalibration()
     }
 
     private fun startCalibration() {
-        // Start countdown for calibration
-        tvCountdown.visibility = TextView.VISIBLE
-        countdownTimer?.cancel() // Cancel any existing timer
+        isCalibratingState.value = true
+        countdownTextState.value = "Countdown: 3"
 
-        isCalibrating = true // Set calibration flag
-
-        countdownTimer = object : CountDownTimer(3000, 1000) {
+        object : CountDownTimer(3000, 1000) {
             override fun onTick(millisUntilFinished: Long) {
-                tvCountdown.text = "Countdown: ${millisUntilFinished / 1000}"
+                countdownTextState.value = "Countdown: ${millisUntilFinished / 1000}"
             }
 
             override fun onFinish() {
-                tvCountdown.text = "Kalibrierung abgeschlossen"
-                tvCountdown.visibility = TextView.GONE
+                countdownTextState.value = "Kalibrierung abgeschlossen"
+                isCalibratingState.value = false
                 calibrateGyroscope()
-                isCalibrating = false // Reset calibration flag
             }
         }.start()
     }
 
     private fun calibrateGyroscope() {
-        // Setze die Kalibrierungswerte auf 0
         calGyroX = 0.0
         calGyroY = 0.0
         calGyroZ = 0.0
-        currentAngle = 0 // Nach der Kalibrierung auf 180 setzen
+        currentAngleState.value = 180
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
-        if (event != null && event.sensor.type == Sensor.TYPE_GYROSCOPE) {
-            // Ignore sensor updates if calibrating
-            if (isCalibrating) return
+        if (event?.sensor?.type == Sensor.TYPE_GYROSCOPE) {
+            if (isCalibratingState.value) return
 
-            val gyroY = event.values[1] - calGyroY // Nehmen Sie den Y-Wert für die Berechnung
-
-            // Berechnung des Winkels
-            // Reduzieren Sie den aktuellen Winkel basierend auf der Gyroskopbewegung
-            currentAngle -= (gyroY * 13.5).toInt() // Multiplikation für bessere Sensitivität
-            currentAngle = currentAngle.coerceIn(0, 180) // Beschränkung zwischen 0 und 180
-
-            // Aktualisieren Sie die TextView mit dem aktuellen Winkel
-            val tmpangel = 180 - currentAngle
-            tvCurrentAngle.text = "Aktueller Winkel: $tmpangel°"
+            val gyroY = event.values[1] - calGyroY
+            val newAngle = currentAngleState.value + (gyroY * 13.5).toInt()
+            currentAngleState.value = newAngle.coerceIn(0, 180)
         }
     }
 
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-        // Nicht benötigt
-    }
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
     override fun onResume() {
         super.onResume()
@@ -125,5 +105,55 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     override fun onPause() {
         super.onPause()
         sensorManager.unregisterListener(this)
+    }
+}
+
+@Composable
+fun MainActivityScreen(
+    currentAngle: Int,
+    isCalibrating: Boolean,
+    countdownText: String,
+    onCalibrate: () -> Unit,
+    onOpenCamera: () -> Unit,
+    onOpenSpiritLevel: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Aktueller Winkel: $currentAngle°",
+            fontSize = 24.sp
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = onCalibrate) {
+            Text("Kalibrieren")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (isCalibrating) {
+            Text(
+                text = countdownText,
+                fontSize = 18.sp
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = onOpenCamera) {
+            Text("Zur Kamera-Ansicht")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = onOpenSpiritLevel) {
+            Text("Zur Wasserwaage")
+        }
     }
 }
