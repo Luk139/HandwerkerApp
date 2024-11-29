@@ -8,7 +8,7 @@ import android.hardware.SensorManager
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 
-class SpiritLevelViewModel(context: Context) : ViewModel(), SensorEventListener {
+class LevelScreenViewModel(context: Context) : ViewModel(), SensorEventListener {
     private val sensorManager: SensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
     private val accelerometer: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)

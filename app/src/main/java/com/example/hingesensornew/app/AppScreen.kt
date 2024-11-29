@@ -16,6 +16,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.hingesensornew.distance.DistanceCreationScreenViewModel
 import com.example.hingesensornew.hingesensor.HingeSensorCreationScreenViewModel
 import com.example.hingesensornew.hingesensor.HingeSensorScreenViewModel
+import com.example.hingesensornew.level.LevelScreenViewModel
 import com.example.hingesensornew.measurement.MeasurementCreationScreenViewModel
 import com.example.hingesensornew.measurement.MeasurementListScreenViewModel
 import com.example.hingesensornew.measurement.MeasurementScreenViewModel
@@ -28,6 +29,7 @@ fun AppScreen(
     hingeSensorScreenViewModel: HingeSensorScreenViewModel,
     distanceCreationScreenViewModel: DistanceCreationScreenViewModel,
     measurementListScreenViewModel: MeasurementListScreenViewModel,
+    levelScreenViewModel: LevelScreenViewModel,
     modifier: Modifier = Modifier
 ) {
     val startDestination = Routes.MEASUREMENT.value
@@ -66,7 +68,8 @@ fun AppScreen(
                 hingeSensorCreationScreenViewModel,
                 hingeSensorScreenViewModel,
                 distanceCreationScreenViewModel,
-                measurementListScreenViewModel
+                measurementListScreenViewModel,
+                levelScreenViewModel
             )
         }
     }

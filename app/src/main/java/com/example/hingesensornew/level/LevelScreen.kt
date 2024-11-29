@@ -19,26 +19,21 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.animation.core.Animatable
 
 @Composable
-fun SpiritLevelScreen(
-    x: Float,
-    y: Float,
-    angleX: Double,
-    angleY: Double,
-    isVertical: Boolean
+fun LevelScreen(levelScreenViewModel: LevelScreenViewModel
 ) {
     val maxTranslation = 250f // Maximale Bewegung
 
     // Zielwerte für horizontale und vertikale Bewegungen berechnen
     val targetHorizontalX = when {
-        Math.abs(angleY) < 0.01 -> 0f
-        Math.abs(angleY) < 20 -> (angleY * maxTranslation / 20).toFloat()
-        else -> if (angleY > 0) maxTranslation else -maxTranslation
+        Math.abs(levelScreenViewModel.angleY.value) < 0.01 -> 0f
+        Math.abs(levelScreenViewModel.angleY.value) < 20 -> (levelScreenViewModel.angleY.value * maxTranslation / 20).toFloat()
+        else -> if (levelScreenViewModel.angleY.value > 0) maxTranslation else -maxTranslation
     }
 
     val targetVerticalY = when {
-        Math.abs(angleX - 90) < 0.01 -> 0f
-        Math.abs(angleX - 90) < 20 -> ((angleX - 90) * maxTranslation / 20).toFloat()
-        else -> if (angleX > 90) maxTranslation else -maxTranslation
+        Math.abs(levelScreenViewModel.angleX.value - 90) < 0.01 -> 0f
+        Math.abs(levelScreenViewModel.angleX.value - 90) < 20 -> ((levelScreenViewModel.angleX.value - 90) * maxTranslation / 20).toFloat()
+        else -> if (levelScreenViewModel.angleX.value > 90) maxTranslation else -maxTranslation
     }
 
     // Animatable-Objekte für die Animation der Offsets
@@ -47,20 +42,20 @@ fun SpiritLevelScreen(
 
     // Animationen auslösen, wenn die Zielwerte sich ändern
     LaunchedEffect(targetHorizontalX) {
-        if (!isVertical) {
+        if (!levelScreenViewModel.isVertical.value) {
             horizontalOffset.animateTo(targetHorizontalX)
         }
     }
 
     LaunchedEffect(targetVerticalY) {
-        if (isVertical) {
+        if (levelScreenViewModel.isVertical.value) {
             verticalOffset.animateTo(targetVerticalY)
         }
     }
 
     // Sicherstellen, dass nur der richtige Offset animiert wird (horizontal oder vertikal)
-    LaunchedEffect(isVertical) {
-        if (isVertical) {
+    LaunchedEffect(levelScreenViewModel.isVertical) {
+        if (levelScreenViewModel.isVertical.value) {
             verticalOffset.snapTo(targetVerticalY) // Verwende snapTo, wenn keine Animation notwendig ist
         } else {
             horizontalOffset.snapTo(targetHorizontalX) // Verwende snapTo, wenn keine Animation notwendig ist
@@ -73,8 +68,8 @@ fun SpiritLevelScreen(
             .padding(16.dp)
     ) {
         Text(
-            text = "Neigung: X=${Math.round(angleX)}°, Y=${Math.round(angleY)}°" +
-                    if (isVertical) " (Vertikal)" else " (Horizontal)",
+            text = "Neigung: X=${Math.round(levelScreenViewModel.angleX.value)}°, Y=${Math.round(levelScreenViewModel.angleY.value)}°" +
+                    if (levelScreenViewModel.isVertical.value) " (Vertikal)" else " (Horizontal)",
             fontSize = 24.sp,
             modifier = Modifier.align(Alignment.TopCenter)
         )
@@ -115,8 +110,8 @@ fun SpiritLevelScreen(
                     .background(Color.Green)
                     .align(Alignment.Center)
                     .offset(
-                        x = if (!isVertical) horizontalOffset.value.dp else 0.dp,
-                        y = if (isVertical) verticalOffset.value.dp else 0.dp
+                        x = if (!levelScreenViewModel.isVertical.value) horizontalOffset.value.dp else 0.dp,
+                        y = if (levelScreenViewModel.isVertical.value) verticalOffset.value.dp else 0.dp
                     )
             )
         }

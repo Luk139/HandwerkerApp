@@ -28,6 +28,7 @@ import com.example.hingesensornew.hingesensor.HingeSensorCreationScreenViewModel
 import com.example.hingesensornew.hingesensor.HingeSensorScreenViewModel
 import com.example.hingesensornew.hingesensor.database.HingeSensorItemDatabase
 import com.example.hingesensornew.hingesensor.database.HingeSensorRepository
+import com.example.hingesensornew.level.LevelScreenViewModel
 import com.example.hingesensornew.measurement.MeasurementCreationScreenViewModel
 import com.example.hingesensornew.measurement.MeasurementListScreenViewModel
 import com.example.hingesensornew.measurement.MeasurementScreenViewModel
@@ -76,6 +77,7 @@ class MainActivity : ComponentActivity(){
         val measurementListScreenViewModel = MeasurementListScreenViewModel(
             measurementRepository
         )
+        val levelScreenViewModel = LevelScreenViewModel(this)
         Log.d("Initialization","Initilaize Data Finished")
         setContent {
             HingeSensorNewTheme {
@@ -89,7 +91,8 @@ class MainActivity : ComponentActivity(){
                         hingeSensorCreationScreenViewModel,
                         hingeSensorScreenViewModel,
                         distanceCreationScreenViewModel,
-                        measurementListScreenViewModel
+                        measurementListScreenViewModel,
+                        levelScreenViewModel
                     )
                 }
             }

@@ -24,6 +24,7 @@ import com.example.hingesensornew.hingesensor.HingeSensorCreationScreenViewModel
 import com.example.hingesensornew.hingesensor.HingeSensorScreen
 import com.example.hingesensornew.hingesensor.HingeSensorScreenViewModel
 import com.example.hingesensornew.level.LevelScreen
+import com.example.hingesensornew.level.LevelScreenViewModel
 import com.example.hingesensornew.measurement.MeasurementCreationScreen
 import com.example.hingesensornew.measurement.MeasurementCreationScreenViewModel
 import com.example.hingesensornew.measurement.MeasurementListScreen
@@ -40,6 +41,7 @@ fun Navigation(
     hingeSensorScreenViewModel: HingeSensorScreenViewModel,
     distanceCreationScreenViewModel: DistanceCreationScreenViewModel,
     measurementListScreenViewModel: MeasurementListScreenViewModel,
+    levelScreenViewModel: LevelScreenViewModel,
     modifier: Modifier = Modifier
 ) {
     var navigatedFrom by rememberSaveable {
@@ -75,7 +77,7 @@ fun Navigation(
                 )
             }
             composable(Routes.LEVEL.value){
-                LevelScreen()
+                LevelScreen(levelScreenViewModel)
             }
             composable(Routes.DISTANCE.value){
                 DistanceScreen(
