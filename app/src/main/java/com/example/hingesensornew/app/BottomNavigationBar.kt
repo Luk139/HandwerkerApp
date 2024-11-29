@@ -23,6 +23,7 @@ fun BottomNavigationBar(
     onMeasurementClick: ()-> Unit,
     onHingeSensorClick: ()-> Unit,
     onLevelClick:()->Unit,
+    onDistanceClick:()->Unit,
     currentDestination: String,
     modifier: Modifier = Modifier
 ) {
@@ -41,7 +42,7 @@ fun BottomNavigationBar(
 
         )
         NavigationBarItem(
-            selected = currentDestination == Routes.HINGESENSOR.value,
+            selected = currentDestination == Routes.HINGE_SENSOR.value,
             onClick = onHingeSensorClick,
             icon= {
                 Icon(
@@ -60,6 +61,16 @@ fun BottomNavigationBar(
                 )
             }
         )
+        NavigationBarItem(
+            selected = currentDestination == Routes.DISTANCE.value,
+            onClick = onDistanceClick,
+            icon = {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.baseline_straighten_24),
+                    contentDescription = "Distance"
+                )
+            }
+        )
     }
 }
 
@@ -67,6 +78,7 @@ fun BottomNavigationBar(
 @Composable
 private fun BottomNavigationBarPreview() {
     BottomNavigationBar(
+        {},
         {},
         {},
         {},

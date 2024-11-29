@@ -1,7 +1,10 @@
 package com.example.hingesensornew.hingesensor.database
 
+import com.example.hingesensornew.measurement.database.MeasurementDao
+import kotlinx.coroutines.flow.Flow
+
 class HingeSensorRepository(
-    private val dao:HingeSensorItemDao
+    private val dao:MeasurementDao
 ) {
     suspend fun insertHingeSensorItem(hingeSensorItemEntity: HingeSensorItemEntity){
         dao.insertHingeSensorItem(hingeSensorItemEntity)
@@ -13,9 +16,5 @@ class HingeSensorRepository(
 
     suspend fun deleteHingeSensorItem(hingeSensorItemEntity: HingeSensorItemEntity){
         dao.deleteHingeSensorItem(hingeSensorItemEntity)
-    }
-
-    suspend fun getAllHingeSenorItems():List<HingeSensorItemEntity>{
-        return dao.getAllHingeSensorItem()
     }
 }

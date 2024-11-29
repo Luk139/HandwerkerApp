@@ -1,31 +1,49 @@
+import android.util.Log
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.hingesensornew.distance.database.DistanceItemEntity
-import com.example.hingesensornew.hingesensor.database.HingeSensorItemEntity
 import com.example.hingesensornew.measurement.Measurement
-import com.example.hingesensornew.measurement.database.MeasurementAndDistanceItemAndHingeSensorItem
+import com.example.hingesensornew.measurement.MeasurementScreenViewModel
 import com.example.hingesensornew.measurement.database.MeasurementEntity
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 
 @Composable
 fun MeasurementScreen(
-    measurementAndDistanceItemAndHingeSensorItems: List<MeasurementAndDistanceItemAndHingeSensorItem>,
-    onMeasurementAddClick:()->Unit,
-    onMeasurementDeleteClick:()->Unit,
-    onHingeSensorDeleteClick:()->Unit,
-    onDistanceDeleteClick:()->Unit,
+    measurementScreenViewModel: MeasurementScreenViewModel,
     modifier: Modifier = Modifier
 ) {
+    LaunchedEffect(Unit) {
+            delay(1000)
+            Log.d("Load Measurements","Lade all Measurements")
+            Log.d("MeasurementScreen View Model",measurementScreenViewModel.toString())
+        try {
+            measurementScreenViewModel.loadMeasurements()
+        } catch (e: Exception) {
+            Log.e("Load Measurements", "Error in loadMeasurements: ${e.message}")
+        }
+        Log.d("Finished Loading","Finished loading Process")
+    }
+
+    val measurementAndDistanceItemAndHingeSensorItems by measurementScreenViewModel.measurements.collectAsState()
     LazyColumn() {
         items(measurementAndDistanceItemAndHingeSensorItems) { item ->
             Measurement(
                 item,
-                onMeasurementAddClick,
-                onMeasurementDeleteClick,
-                onHingeSensorDeleteClick,
-                onDistanceDeleteClick
+                {
+                    measurement-> measurementScreenViewModel.deleteMeasurement(measurement)
+                },
+                {
+                    hingeSensorItemEntity -> measurementScreenViewModel.deleteHingeSensorEntity(hingeSensorItemEntity)
+                },
+                {
+                    distanceItemEntity -> measurementScreenViewModel.deleteDistanceEntity(distanceItemEntity)
+                }
             )
         }
     }
@@ -36,69 +54,4 @@ fun MeasurementScreen(
 )
 @Composable
 private fun MeasurementScreenPreview() {
-    val hingeSensorList = mutableListOf<HingeSensorItemEntity>()
-    val distanceSensorList = mutableListOf<DistanceItemEntity>()
-    hingeSensorList.add(
-        HingeSensorItemEntity(
-            1,
-            "Test 1",
-            12.33f,
-            1
-        )
-    )
-    hingeSensorList.add(
-        HingeSensorItemEntity(
-            2,
-            "Test 2",
-            15.33f,
-            1
-        )
-    )
-    distanceSensorList.add(
-        DistanceItemEntity(
-            1,
-            "Test 1",
-            15.33f,
-            1
-        )
-    )
-    distanceSensorList.add(
-        DistanceItemEntity(
-            2,
-            "Test 2",
-            15.33f,
-            1
-        )
-    )
-    val measurementEntity1 = MeasurementEntity(
-        1,
-        "Test 1"
-    )
-    val measurementEntity2 = MeasurementEntity(
-        2,
-        "Test 2"
-    )
-    val measurementList = mutableListOf<MeasurementAndDistanceItemAndHingeSensorItem>()
-
-    measurementList.add(
-        MeasurementAndDistanceItemAndHingeSensorItem(
-        measurementEntity1,
-        distanceSensorList,
-        hingeSensorList
-        )
-    )
-
-    measurementList.add(MeasurementAndDistanceItemAndHingeSensorItem(
-        measurementEntity2,
-        distanceSensorList,
-        hingeSensorList
-    ))
-
-   MeasurementScreen(
-       measurementList,
-       {},
-       {},
-       {},
-       {}
-   )
 }

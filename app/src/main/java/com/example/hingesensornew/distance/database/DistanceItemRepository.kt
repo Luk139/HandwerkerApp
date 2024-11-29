@@ -1,7 +1,10 @@
 package com.example.hingesensornew.distance.database
 
+import com.example.hingesensornew.measurement.database.MeasurementDao
+import kotlinx.coroutines.flow.Flow
+
 class DistanceItemRepository (
-    private val dao: DistanceItemDao
+    private val dao: MeasurementDao
 ){
     suspend fun insertDistanceItem(distanceItemEntity: DistanceItemEntity){
         dao.insertDistanceItem(distanceItemEntity)
@@ -13,9 +16,5 @@ class DistanceItemRepository (
 
     suspend fun deleteDistanceItem(distanceItemEntity: DistanceItemEntity){
         dao.deleteDistanceItem(distanceItemEntity)
-    }
-
-    suspend fun getAllDistanceItems(): List<DistanceItemEntity>{
-        return dao.getAllDistanceItems()
     }
 }

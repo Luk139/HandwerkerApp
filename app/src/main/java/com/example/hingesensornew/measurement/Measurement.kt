@@ -31,18 +31,17 @@ import com.example.hingesensornew.distance.database.DistanceItemEntity
 import com.example.hingesensornew.hingesensor.HingeSensorItem
 import com.example.hingesensornew.hingesensor.database.HingeSensorItemEntity
 import com.example.hingesensornew.measurement.database.MeasurementAndDistanceItemAndHingeSensorItem
-import com.example.hingesensornew.measurement.database.MeasurementAndHingeSensorItem
 import com.example.hingesensornew.measurement.database.MeasurementEntity
 
 @Composable
 fun Measurement(
     measurementAndDistanceItemAndHingeSensorItem: MeasurementAndDistanceItemAndHingeSensorItem,
-    onMeasurementAddClick:()->Unit,
-    onMeasurementDeleteClick:()->Unit,
-    onHingeSensorDeleteClick:()->Unit,
-    onDistanceDeleteClick:()-> Unit,
+    onMeasurementDeleteClick:(MeasurementAndDistanceItemAndHingeSensorItem)->Unit,
+    onHingeSensorDeleteClick:(HingeSensorItemEntity)->Unit,
+    onDistanceDeleteClick:(DistanceItemEntity)-> Unit,
     modifier: Modifier = Modifier
 ) {
+
     var isExpanded by remember { mutableStateOf(false) }
     Column (
         modifier = modifier
@@ -65,12 +64,9 @@ fun Measurement(
                 modifier = Modifier.weight(1f)
             )
             IconButton(
-                onClick = onMeasurementAddClick
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Measurements")
-            }
-            IconButton(
-                onClick = onMeasurementDeleteClick
+                onClick = {
+                    onMeasurementDeleteClick(measurementAndDistanceItemAndHingeSensorItem)
+                }
             ) {
                 Icon(Icons.Default.Delete, contentDescription = "Delete Measurements")
             }
@@ -82,16 +78,16 @@ fun Measurement(
                 thickness = 1.dp,
                 color = Color.Black
             )
-            for(hingeSensorEntity in measurementAndDistanceItemAndHingeSensorItem.hingeSensorItems){
+            for(hingeSensorEntity in measurementAndDistanceItemAndHingeSensorItem.hingeSensorItemEntities){
                 HingeSensorItem(
                     hingeSensorEntity,
-                    onHingeSensorDeleteClick
+                    {onHingeSensorDeleteClick(hingeSensorEntity)}
                 )
             }
             for(distanceEntity in measurementAndDistanceItemAndHingeSensorItem.distanceItems){
                 DistanceItem(
                     distanceEntity,
-                    onDistanceDeleteClick
+                    {onDistanceDeleteClick(distanceEntity)}
                 )
             }
         }
@@ -149,7 +145,6 @@ private fun MeasurementItemPreview() {
                 distanceSensorList,
                 hingeSensorList
             ),
-            {},
             {},
             {},
             {}

@@ -9,13 +9,13 @@ data class MeasurementAndDistanceItemAndHingeSensorItem(
         @Embedded
         val measurementEntity: MeasurementEntity,
         @Relation(
-            parentColumn = "measurementId",
-            entityColumn = "measurementOwnerId"
+                parentColumn = "measurementId",
+                entityColumn = "measurementOwnerId"
         )
         val distanceItems: List<DistanceItemEntity>,
         @Relation(
-            parentColumn = "measurementId",
-            entityColumn = "measurementOwnerId"
+                parentColumn = "measurementId",
+                entityColumn = "measurementOwnerId",
         )
-        val hingeSensorItems: List<HingeSensorItemEntity>
+        val hingeSensorItemEntities: List<HingeSensorItemEntity>
 )

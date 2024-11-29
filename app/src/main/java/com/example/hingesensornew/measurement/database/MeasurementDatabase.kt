@@ -4,10 +4,12 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.hingesensornew.distance.database.DistanceItemEntity
+import com.example.hingesensornew.hingesensor.database.HingeSensorItemEntity
 import kotlinx.coroutines.CoroutineScope
 
 @Database(
-    entities = [MeasurementEntity::class],
+    entities = [MeasurementEntity::class,DistanceItemEntity::class,HingeSensorItemEntity::class],
     version = 1
 )
 abstract class MeasurementDatabase: RoomDatabase(){

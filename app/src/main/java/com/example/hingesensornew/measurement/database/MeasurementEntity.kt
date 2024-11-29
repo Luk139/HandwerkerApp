@@ -6,6 +6,6 @@ import androidx.room.PrimaryKey
 @Entity
 class MeasurementEntity(
     @PrimaryKey(autoGenerate = true)
-    val measurementId: Int,
+    val measurementId: Int = 0,
     val title:String
 )

@@ -1,5 +1,7 @@
 package com.example.hingesensornew.measurement.database
 
+import kotlinx.coroutines.flow.Flow
+
 class MeasurementRepository(
     private val dao: MeasurementDao
 ) {
@@ -15,7 +17,11 @@ class MeasurementRepository(
         dao.updateMeasurement(measurementEntity)
     }
 
-    suspend fun getMeasurementsWithDistanceAndHingeSensorItems():List<MeasurementAndDistanceItemAndHingeSensorItem>{
-        return dao.getAllMeasurementsWithDistanceItemAndHingeSensorItem()
+    fun getMeasurementsWithData():Flow<List<MeasurementAndDistanceItemAndHingeSensorItem>>{
+        return dao.getAllMeasurementsWithHingeSensorAndDistance()
+    }
+
+    fun getMeasurements():Flow<List<MeasurementEntity>>{
+        return dao.getAllMeasurements()
     }
 }
