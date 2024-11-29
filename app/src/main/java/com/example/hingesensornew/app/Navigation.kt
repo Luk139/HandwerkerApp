@@ -22,6 +22,7 @@ import com.example.hingesensornew.distance.DistanceScreen
 import com.example.hingesensornew.hingesensor.HingeSensorCreationScreen
 import com.example.hingesensornew.hingesensor.HingeSensorCreationScreenViewModel
 import com.example.hingesensornew.hingesensor.HingeSensorScreen
+import com.example.hingesensornew.hingesensor.HingeSensorScreenViewModel
 import com.example.hingesensornew.level.LevelScreen
 import com.example.hingesensornew.measurement.MeasurementCreationScreen
 import com.example.hingesensornew.measurement.MeasurementCreationScreenViewModel
@@ -36,6 +37,7 @@ fun Navigation(
     measurementScreenViewModel: MeasurementScreenViewModel,
     measurementCreationScreenViewModel: MeasurementCreationScreenViewModel,
     hingeSensorCreationScreenViewModel: HingeSensorCreationScreenViewModel,
+    hingeSensorScreenViewModel: HingeSensorScreenViewModel,
     distanceCreationScreenViewModel: DistanceCreationScreenViewModel,
     measurementListScreenViewModel: MeasurementListScreenViewModel,
     modifier: Modifier = Modifier
@@ -61,9 +63,13 @@ fun Navigation(
             }
             composable(Routes.HINGE_SENSOR.value){
                 HingeSensorScreen(
-                    {
+                    currentAngle = hingeSensorScreenViewModel.currentAngleState.value,
+                    isCalibrating = hingeSensorScreenViewModel.isCalibratingState.value,
+                    countdownText = hingeSensorScreenViewModel.countdownTextState.value,
+                    onCalibrate = { hingeSensorScreenViewModel.startCalibration() },
+                    onAddToMeasurement = {
+                        angle = hingeSensorScreenViewModel.returnAngle().value.toFloat()
                         navigatedFrom = Routes.HINGE_SENSOR.value
-                        angle = 12.0f
                         navController.navigate(Routes.MEASUREMENT_SELECTION.value)
                     }
                 )

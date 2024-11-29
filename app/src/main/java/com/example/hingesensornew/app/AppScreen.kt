@@ -15,6 +15,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.hingesensornew.distance.DistanceCreationScreenViewModel
 import com.example.hingesensornew.hingesensor.HingeSensorCreationScreenViewModel
+import com.example.hingesensornew.hingesensor.HingeSensorScreenViewModel
 import com.example.hingesensornew.measurement.MeasurementCreationScreenViewModel
 import com.example.hingesensornew.measurement.MeasurementListScreenViewModel
 import com.example.hingesensornew.measurement.MeasurementScreenViewModel
@@ -24,6 +25,7 @@ fun AppScreen(
     measurementScreenViewModel: MeasurementScreenViewModel,
     measurementCreationScreenViewModel: MeasurementCreationScreenViewModel,
     hingeSensorCreationScreenViewModel: HingeSensorCreationScreenViewModel,
+    hingeSensorScreenViewModel: HingeSensorScreenViewModel,
     distanceCreationScreenViewModel: DistanceCreationScreenViewModel,
     measurementListScreenViewModel: MeasurementListScreenViewModel,
     modifier: Modifier = Modifier
@@ -62,6 +64,7 @@ fun AppScreen(
                 measurementScreenViewModel,
                 measurementCreationScreenViewModel,
                 hingeSensorCreationScreenViewModel,
+                hingeSensorScreenViewModel,
                 distanceCreationScreenViewModel,
                 measurementListScreenViewModel
             )
