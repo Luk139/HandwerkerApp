@@ -7,64 +7,46 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
+import io.github.sceneview.ar.ARSceneView
+import io.github.sceneview.ar.ARScene
+import io.github.sceneview.node.Node
+import io.github.sceneview.math.Position
+import io.github.sceneview.node.SphereNode
 import com.google.android.filament.Engine
 import com.google.ar.core.Config
 import com.google.ar.core.Frame
-import io.github.sceneview.ar.ARSceneView
-import io.github.sceneview.ar.ARScene
-import io.github.sceneview.ar.arcore.hitTest
-import io.github.sceneview.collision.HitResult
 import io.github.sceneview.loaders.MaterialLoader
-import io.github.sceneview.math.Position
 import io.github.sceneview.math.Rotation
-import io.github.sceneview.node.CubeNode
 import io.github.sceneview.node.CylinderNode
-import io.github.sceneview.node.ModelNode
-import io.github.sceneview.node.Node
-import io.github.sceneview.node.SphereNode
-import io.github.sceneview.rememberCameraNode
-import io.github.sceneview.rememberCollisionSystem
 import io.github.sceneview.rememberEngine
-import io.github.sceneview.rememberEnvironment
-import io.github.sceneview.rememberEnvironmentLoader
-import io.github.sceneview.rememberMainLightNode
-import io.github.sceneview.rememberMaterialLoader
-import io.github.sceneview.rememberModelLoader
-import io.github.sceneview.rememberNodes
-import io.github.sceneview.rememberOnGestureListener
-import io.github.sceneview.rememberRenderer
 import io.github.sceneview.rememberScene
+import io.github.sceneview.rememberRenderer
+import io.github.sceneview.rememberMaterialLoader
 import io.github.sceneview.rememberView
+import io.github.sceneview.rememberNodes
+import io.github.sceneview.rememberCollisionSystem
 
 class CameraActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-                ARScreen()
-            }
+            ARScreen()
         }
     }
+}
 
 @Composable
 fun ARScreen() {
@@ -72,23 +54,18 @@ fun ARScreen() {
     val view = rememberView(engine)
     val renderer = rememberRenderer(engine)
     val scene = rememberScene(engine)
-    val modelLoader = rememberModelLoader(engine)
     val materialLoader = rememberMaterialLoader(engine)
-    val environmentLoader = rememberEnvironmentLoader(engine)
     val collisionSystem = rememberCollisionSystem(view)
-    val cameraNode = rememberCameraNode(engine)
-
-    val nodes = rememberNodes()
 
     var currentFrame by remember { mutableStateOf<Frame?>(null) }
 
     val spherePositions = remember { mutableListOf<Position>() }
+    var distance by remember { mutableStateOf<Float>(0f) }
 
-    var distance by remember { mutableStateOf("- cm") }
+    val nodes = rememberNodes()
 
-    var cubeNode: Node? by remember { mutableStateOf(null) }
-
-    val cubeNodes = remember { mutableListOf<Node>() }
+    // Variable für die Linie
+    var lineNode: Node? by remember { mutableStateOf(null) }
 
     ARScene(
         modifier = Modifier.fillMaxSize(),
@@ -96,25 +73,12 @@ fun ARScreen() {
         view = view,
         renderer = renderer,
         scene = scene,
-        modelLoader = modelLoader,
         materialLoader = materialLoader,
-        environmentLoader = environmentLoader,
         collisionSystem = collisionSystem,
         isOpaque = true,
         planeRenderer = false,
-        mainLightNode = rememberMainLightNode(engine) {
-            intensity = 100_000.0f
-            transform(
-                position = Position(0f, 100f, 0f),
-                rotation = Rotation(x = 0f, y = 0f, z = 0f)
-            )
-        },
         sessionConfiguration = { session, config ->
-            config.depthMode = if (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
-                Config.DepthMode.AUTOMATIC
-            } else {
-                Config.DepthMode.DISABLED
-            }
+            config.depthMode = Config.DepthMode.AUTOMATIC
             config.instantPlacementMode = Config.InstantPlacementMode.LOCAL_Y_UP
             config.lightEstimationMode = Config.LightEstimationMode.ENVIRONMENTAL_HDR
         },
@@ -129,7 +93,9 @@ fun ARScreen() {
                         y = hitPosition[1],
                         z = hitPosition[2]
                     )
+
                     if (spherePositions.size < 2) {
+                        // Füge einen neuen Punkt hinzu
                         val newSphere = SphereNode(
                             engine = engine,
                             radius = 0.025f,
@@ -140,36 +106,25 @@ fun ARScreen() {
                                 reflectance = 0.0f
                             )
                         ).apply {
-                            transform(
-                                position = positionInFrontOfCamera,
-                                rotation = Rotation(x = 0.0f)
-                            )
+                            transform(position = positionInFrontOfCamera)
                         }
                         nodes.add(newSphere)
                         spherePositions.add(positionInFrontOfCamera)
 
                         if (spherePositions.size == 2) {
+                            // Berechne die Distanz
                             distance = calculateDistance(spherePositions[0], spherePositions[1])
-                            cubeNodes.forEach { nodes.remove(it) }
-                            cubeNodes.clear()
 
-                            placeSpheresAlongPath(
-                                engine = engine,
-                                nodes = nodes,
-                                materialLoader = materialLoader,
-                                startPosition = spherePositions[0],
-                                endPosition = spherePositions[1],
-                                cubeNodes = cubeNodes
-                            )
+                            // Erstelle eine Linie zwischen den Punkten
+                            drawLineBetweenPoints(engine, nodes, materialLoader, spherePositions[0], spherePositions[1])
                         }
                     } else {
+                        // Entferne den ersten Punkt und ersetze ihn durch den neuen
+                        spherePositions[0] = positionInFrontOfCamera
                         val firstSphere = nodes.firstOrNull() as? SphereNode
                         firstSphere?.let {
                             nodes.remove(it)
                         }
-                        spherePositions.removeAt(0)
-
-                        spherePositions.add(positionInFrontOfCamera)
 
                         val newSphere = SphereNode(
                             engine = engine,
@@ -181,50 +136,25 @@ fun ARScreen() {
                                 reflectance = 0.0f
                             )
                         ).apply {
-                            transform(
-                                position = positionInFrontOfCamera,
-                                rotation = Rotation(x = 0.0f)
-                            )
+                            transform(position = positionInFrontOfCamera)
                         }
                         nodes.add(newSphere)
 
-                        if (spherePositions.size == 2) {
-                            distance = calculateDistance(spherePositions[0], spherePositions[1])
-                            cubeNodes.forEach { nodes.remove(it) }
-                            cubeNodes.clear()
+                        // Berechne erneut die Distanz
+                        distance = calculateDistance(spherePositions[0], spherePositions[1])
 
-                            placeSpheresAlongPath(
-                                engine = engine,
-                                nodes = nodes,
-                                materialLoader = materialLoader,
-                                startPosition = spherePositions[0],
-                                endPosition = spherePositions[1],
-                                cubeNodes = cubeNodes
-                            )
-                        }
+                        // Aktualisiere die Linie
+                        drawLineBetweenPoints(engine, nodes, materialLoader, spherePositions[0], spherePositions[1])
                     }
                 }
                 return@ARScene true
             }
             return@ARScene false
         },
-        onSessionUpdated = { _, frame ->
-            currentFrame = frame
-        }
+        onSessionUpdated = { _, frame -> currentFrame = frame }
     )
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        contentAlignment = Alignment.BottomCenter
-    ) {
-        Button(
-            onClick = {},
-            content = { Text("Add Point") }
-        )
-    }
-
+    // Marker in der Mitte der Ansicht
     Canvas(modifier = Modifier.fillMaxSize()) {
         val canvasWidth = size.width
         val canvasHeight = size.height
@@ -233,12 +163,13 @@ fun ARScreen() {
         val centerY = canvasHeight / 2
 
         drawCircle(
-            color = Color.White,
+            color = Color.Red,
             radius = circleRadius,
             center = Offset(centerX, centerY)
         )
     }
 
+    // Text für die angezeigte Distanz
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -254,55 +185,59 @@ fun ARScreen() {
     }
 }
 
-fun placeSpheresAlongPath(
+fun drawLineBetweenPoints(
     engine: Engine,
     nodes: MutableList<Node>,
     materialLoader: MaterialLoader,
     startPosition: Position,
-    endPosition: Position,
-    cubeNodes: MutableList<Node>
+    endPosition: Position
 ) {
-    // Define the number of spheres we want to place along the path
-    val numberOfSpheres = 10
+    // Berechne die Distanz und die Richtung zwischen den beiden Punkten
+    val dx = endPosition.x - startPosition.x
+    val dy = endPosition.y - startPosition.y
+    val dz = endPosition.z - startPosition.z
 
-    // Calculate the increments for each axis to place the spheres evenly along the path
-    val dx = (endPosition.x - startPosition.x) / (numberOfSpheres - 1)
-    val dy = (endPosition.y - startPosition.y) / (numberOfSpheres - 1)
-    val dz = (endPosition.z - startPosition.z) / (numberOfSpheres - 1)
+    val distance = Math.sqrt((dx * dx + dy * dy + dz * dz).toDouble()).toFloat()
 
-    // Clear any previously placed spheres along the path
-    cubeNodes.forEach { nodes.remove(it) }
-    cubeNodes.clear()
+    // Berechne die Anzahl der Kreise, die entlang der Strecke platziert werden (10 Kreise für je 50 cm)
+    val numberOfCircles = (distance / 50f).toInt() * 10
 
-    // Place exactly 10 spheres along the path
-    for (i in 0 until numberOfSpheres) {
-        val spherePosition = Position(
-            x = startPosition.x + dx * i,
-            y = startPosition.y + dy * i,
-            z = startPosition.z + dz * i
-        )
-        val sphereNode = SphereNode(
+    // Berechne die Inkremente für die Positionierung der Kreise entlang der Linie
+    val stepX = dx / numberOfCircles
+    val stepY = dy / numberOfCircles
+    val stepZ = dz / numberOfCircles
+
+    // Erstelle die Kreise und platziere sie entlang der Linie
+    for (i in 0 until numberOfCircles) {
+        // Berechne die Position des aktuellen Kreises
+        val currentX = startPosition.x + stepX * i
+        val currentY = startPosition.y + stepY * i
+        val currentZ = startPosition.z + stepZ * i
+
+        // Erstelle einen kleinen Kreis als SphereNode
+        val circle = SphereNode(
             engine = engine,
-            radius = 0.005f,
+            radius = 0.5f,  // kleiner Kreis
             materialInstance = materialLoader.createColorInstance(
-                color = Color.Yellow,
+                color = Color.Yellow,  // Farbe der Kreise
                 metallic = 0.0f,
                 roughness = 0.0f,
                 reflectance = 0.0f
             )
         ).apply {
-            transform(position = spherePosition)
+            // Positioniere den Kreis entlang der Linie
+            transform(position = Position(currentX, currentY, currentZ))
         }
-        nodes.add(sphereNode)
-        cubeNodes.add(sphereNode)
+
+        // Füge den Kreis zur Liste der Knoten hinzu
+        nodes.add(circle)
     }
 }
 
-
-fun calculateDistance(position1: Position, position2: Position): String {
+fun calculateDistance(position1: Position, position2: Position): Float {
     val dx = position2.x - position1.x
     val dy = position2.y - position1.y
     val dz = position2.z - position1.z
-    val distance = Math.sqrt((dx * dx + dy * dy + dz * dz).toDouble())
-    return String.format("%.2f cm", distance * 100)
+    val distance = Math.sqrt(((dx * dx + dy * dy + dz * dz).toDouble()))
+    return (distance * 100).toFloat()
 }
