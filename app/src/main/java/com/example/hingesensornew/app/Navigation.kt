@@ -19,6 +19,7 @@ import androidx.navigation.createGraph
 import com.example.hingesensornew.distance.DistanceCreationScreen
 import com.example.hingesensornew.distance.DistanceCreationScreenViewModel
 import com.example.hingesensornew.distance.DistanceScreen
+import com.example.hingesensornew.distance.DistanceScreenViewModel
 import com.example.hingesensornew.hingesensor.HingeSensorCreationScreen
 import com.example.hingesensornew.hingesensor.HingeSensorCreationScreenViewModel
 import com.example.hingesensornew.hingesensor.HingeSensorScreen
@@ -40,6 +41,7 @@ fun Navigation(
     hingeSensorCreationScreenViewModel: HingeSensorCreationScreenViewModel,
     hingeSensorScreenViewModel: HingeSensorScreenViewModel,
     distanceCreationScreenViewModel: DistanceCreationScreenViewModel,
+    distanceScreenViewModel: DistanceScreenViewModel,
     measurementListScreenViewModel: MeasurementListScreenViewModel,
     levelScreenViewModel: LevelScreenViewModel,
     modifier: Modifier = Modifier
@@ -80,13 +82,11 @@ fun Navigation(
                 LevelScreen(levelScreenViewModel)
             }
             composable(Routes.DISTANCE.value){
-                DistanceScreen(
-                    {
-                        navigatedFrom = Routes.DISTANCE.value
-                        distance = 12.0f
-                        navController.navigate(Routes.MEASUREMENT_SELECTION.value)
-                    }
-                )
+                DistanceScreen(distanceScreenViewModel) {
+                    distance = distanceScreenViewModel.returnDistance()
+                    navigatedFrom = Routes.DISTANCE.value
+                    navController.navigate(Routes.MEASUREMENT_SELECTION.value)
+                }
             }
             composable(Routes.MEASUREMENT_CREATION.value){
                 MeasurementCreationScreen(

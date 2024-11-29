@@ -14,9 +14,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.ViewModel
-import com.example.hingesensornew.CameraActivity
-import com.example.hingesensornew.SpiritLevelActivity
-import com.example.hingesensornew.ui.theme.HingeSensorNewTheme
+
 
 class HingeSensorScreenViewModel(var sensorManager: SensorManager) : SensorEventListener, ViewModel(){
 

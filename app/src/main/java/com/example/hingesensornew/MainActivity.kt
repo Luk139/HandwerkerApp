@@ -22,6 +22,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.hingesensornew.app.AppScreen
 import com.example.hingesensornew.distance.DistanceCreationScreenViewModel
+import com.example.hingesensornew.distance.DistanceScreenViewModel
 
 import com.example.hingesensornew.distance.database.DistanceItemRepository
 import com.example.hingesensornew.hingesensor.HingeSensorCreationScreenViewModel
@@ -70,6 +71,7 @@ class MainActivity : ComponentActivity(){
         val distanceCreationScreenViewModel = DistanceCreationScreenViewModel(
             distanceItemRepository
         )
+        val distanceScreenViewModel = DistanceScreenViewModel()
         val hingeSensorCreationScreenViewModel = HingeSensorCreationScreenViewModel(
             hingeSensorRepository
         )
@@ -91,6 +93,7 @@ class MainActivity : ComponentActivity(){
                         hingeSensorCreationScreenViewModel,
                         hingeSensorScreenViewModel,
                         distanceCreationScreenViewModel,
+                        distanceScreenViewModel,
                         measurementListScreenViewModel,
                         levelScreenViewModel
                     )

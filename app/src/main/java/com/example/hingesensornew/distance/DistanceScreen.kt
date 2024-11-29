@@ -39,7 +39,7 @@ import io.github.sceneview.rememberScene
 import io.github.sceneview.rememberView
 
 @Composable
-fun DistanceScreen() {
+fun DistanceScreen(distanceScreenViewMode: DistanceScreenViewModel, onClick: () -> Unit) {
     val engine = rememberEngine()
     val view = rememberView(engine)
     val renderer = rememberRenderer(engine)
@@ -103,10 +103,10 @@ fun DistanceScreen() {
 
                         if (spherePositions.size == 2) {
                             // Berechne die Distanz
-                            distance = calculateDistance(spherePositions[0], spherePositions[1])
+                            distance = distanceScreenViewMode.calculateDistance(spherePositions[0], spherePositions[1])
 
                             // Erstelle eine Linie zwischen den Punkten
-                            drawLineBetweenPoints(engine, nodes, materialLoader, spherePositions[0], spherePositions[1])
+                            distanceScreenViewMode.drawLineBetweenPoints(engine, nodes, materialLoader, spherePositions[0], spherePositions[1])
                         }
                     } else {
                         // Entferne den ersten Punkt und ersetze ihn durch den neuen
@@ -131,10 +131,10 @@ fun DistanceScreen() {
                         nodes.add(newSphere)
 
                         // Berechne erneut die Distanz
-                        distance = calculateDistance(spherePositions[0], spherePositions[1])
+                        distance = distanceScreenViewMode.calculateDistance(spherePositions[0], spherePositions[1])
 
                         // Aktualisiere die Linie
-                        drawLineBetweenPoints(engine, nodes, materialLoader, spherePositions[0], spherePositions[1])
+                        distanceScreenViewMode.drawLineBetweenPoints(engine, nodes, materialLoader, spherePositions[0], spherePositions[1])
                     }
                 }
                 return@ARScene true
@@ -173,61 +173,31 @@ fun DistanceScreen() {
             style = TextStyle(fontSize = 32.sp)
         )
     }
-}
 
-fun drawLineBetweenPoints(
-    engine: Engine,
-    nodes: MutableList<Node>,
-    materialLoader: MaterialLoader,
-    startPosition: Position,
-    endPosition: Position
-) {
-    // Berechne die Distanz und die Richtung zwischen den beiden Punkten
-    val dx = endPosition.x - startPosition.x
-    val dy = endPosition.y - startPosition.y
-    val dz = endPosition.z - startPosition.z
-
-    val distance = Math.sqrt((dx * dx + dy * dy + dz * dz).toDouble()).toFloat()
-
-    // Berechne die Anzahl der Kreise, die entlang der Strecke platziert werden (10 Kreise für je 50 cm)
-    val numberOfCircles = (distance / 50f).toInt() * 10
-
-    // Berechne die Inkremente für die Positionierung der Kreise entlang der Linie
-    val stepX = dx / numberOfCircles
-    val stepY = dy / numberOfCircles
-    val stepZ = dz / numberOfCircles
-
-    // Erstelle die Kreise und platziere sie entlang der Linie
-    for (i in 0 until numberOfCircles) {
-        // Berechne die Position des aktuellen Kreises
-        val currentX = startPosition.x + stepX * i
-        val currentY = startPosition.y + stepY * i
-        val currentZ = startPosition.z + stepZ * i
-
-        // Erstelle einen kleinen Kreis als SphereNode
-        val circle = SphereNode(
-            engine = engine,
-            radius = 0.5f,  // kleiner Kreis
-            materialInstance = materialLoader.createColorInstance(
-                color = Color.Yellow,  // Farbe der Kreise
-                metallic = 0.0f,
-                roughness = 0.0f,
-                reflectance = 0.0f
-            )
-        ).apply {
-            // Positioniere den Kreis entlang der Linie
-            transform(position = Position(currentX, currentY, currentZ))
+    // Save Distance Button - Zentrisch am unteren Bildschirmrand
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .offset(y = 0.dp),
+        contentAlignment = Alignment.BottomCenter
+    ) {
+        if(distance!=0f) {
+            Button(
+                onClick = {
+                    onClick()
+                },
+                modifier = Modifier
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "Save Distance",
+                    color = Color.Black,
+                    style = TextStyle(fontSize = 18.sp)
+                )
+            }
         }
-
-        // Füge den Kreis zur Liste der Knoten hinzu
-        nodes.add(circle)
     }
 }
 
-fun calculateDistance(position1: Position, position2: Position): Float {
-    val dx = position2.x - position1.x
-    val dy = position2.y - position1.y
-    val dz = position2.z - position1.z
-    val distance = Math.sqrt(((dx * dx + dy * dy + dz * dz).toDouble()))
-    return (distance * 100).toFloat()
-}
+
