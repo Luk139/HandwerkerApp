@@ -19,46 +19,25 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.animation.core.Animatable
 
 @Composable
-fun LevelScreen(levelScreenViewModel: LevelScreenViewModel
-) {
+fun LevelScreen(levelScreenViewModel: LevelScreenViewModel) {
     val maxTranslation = 250f // Maximale Bewegung
 
     // Zielwerte für horizontale und vertikale Bewegungen berechnen
-    val targetHorizontalX = when {
-        Math.abs(levelScreenViewModel.angleY.value) < 0.01 -> 0f
-        Math.abs(levelScreenViewModel.angleY.value) < 20 -> (levelScreenViewModel.angleY.value * maxTranslation / 20).toFloat()
-        else -> if (levelScreenViewModel.angleY.value > 0) maxTranslation else -maxTranslation
-    }
+    val targetHorizontalX = 90f
 
-    val targetVerticalY = when {
-        Math.abs(levelScreenViewModel.angleX.value - 90) < 0.01 -> 0f
-        Math.abs(levelScreenViewModel.angleX.value - 90) < 20 -> ((levelScreenViewModel.angleX.value - 90) * maxTranslation / 20).toFloat()
-        else -> if (levelScreenViewModel.angleX.value > 90) maxTranslation else -maxTranslation
-    }
+    val targetVerticalY = 90f
 
     // Animatable-Objekte für die Animation der Offsets
-    val horizontalOffset = remember { Animatable(0f) }
-    val verticalOffset = remember { Animatable(0f) }
+    val offset = remember { Animatable(0f) }
 
-    // Animationen auslösen, wenn die Zielwerte sich ändern
-    LaunchedEffect(targetHorizontalX) {
-        if (!levelScreenViewModel.isVertical.value) {
-            horizontalOffset.animateTo(targetHorizontalX)
-        }
-    }
-
-    LaunchedEffect(targetVerticalY) {
+    // Animation entsprechend dem Modus (horizontal oder vertikal)
+    LaunchedEffect(levelScreenViewModel.isVertical.value, targetHorizontalX, targetVerticalY) {
         if (levelScreenViewModel.isVertical.value) {
-            verticalOffset.animateTo(targetVerticalY)
-        }
-    }
-
-    // Sicherstellen, dass nur der richtige Offset animiert wird (horizontal oder vertikal)
-    LaunchedEffect(levelScreenViewModel.isVertical) {
-        if (levelScreenViewModel.isVertical.value) {
-            verticalOffset.snapTo(targetVerticalY) // Verwende snapTo, wenn keine Animation notwendig ist
+            // Vertikale Animation
+            offset.animateTo(targetVerticalY)
         } else {
-            horizontalOffset.snapTo(targetHorizontalX) // Verwende snapTo, wenn keine Animation notwendig ist
+            // Horizontale Animation
+            offset.animateTo(targetHorizontalX)
         }
     }
 
@@ -110,11 +89,10 @@ fun LevelScreen(levelScreenViewModel: LevelScreenViewModel
                     .background(Color.Green)
                     .align(Alignment.Center)
                     .offset(
-                        x = if (!levelScreenViewModel.isVertical.value) horizontalOffset.value.dp else 0.dp,
-                        y = if (levelScreenViewModel.isVertical.value) verticalOffset.value.dp else 0.dp
+                        x = if (!levelScreenViewModel.isVertical.value) offset.value.dp else 0.dp,
+                        y = if (levelScreenViewModel.isVertical.value) offset.value.dp else 0.dp
                     )
             )
         }
     }
 }
-
