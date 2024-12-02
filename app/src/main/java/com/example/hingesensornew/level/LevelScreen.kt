@@ -1,97 +1,81 @@
 package com.example.hingesensornew.level
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.animation.core.Animatable
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.material3.SliderDefaults
 
 @Composable
 fun LevelScreen(levelScreenViewModel: LevelScreenViewModel) {
-    val maxTranslation = 250f // Maximale Bewegung
-
-    // Zielwerte für horizontale und vertikale Bewegungen berechnen
-    val targetHorizontalX = 90f
-
-    val targetVerticalY = 90f
-
-    // Animatable-Objekte für die Animation der Offsets
-    val offset = remember { Animatable(0f) }
-
-    // Animation entsprechend dem Modus (horizontal oder vertikal)
-    LaunchedEffect(levelScreenViewModel.isVertical.value, targetHorizontalX, targetVerticalY) {
-        if (levelScreenViewModel.isVertical.value) {
-            // Vertikale Animation
-            offset.animateTo(targetVerticalY)
-        } else {
-            // Horizontale Animation
-            offset.animateTo(targetHorizontalX)
-        }
-    }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text(
-            text = "Neigung: X=${Math.round(levelScreenViewModel.angleX.value)}°, Y=${Math.round(levelScreenViewModel.angleY.value)}°" +
-                    if (levelScreenViewModel.isVertical.value) " (Vertikal)" else " (Horizontal)",
-            fontSize = 24.sp,
-            modifier = Modifier.align(Alignment.TopCenter)
-        )
-
         Box(
             modifier = Modifier
-                .fillMaxSize()
+                .align(Alignment.Center)
                 .padding(32.dp)
         ) {
-            // Horizontale Linie
-            Box(
+            val adjustedAngleX = when {
+                levelScreenViewModel.angleX.value > 190 -> levelScreenViewModel.angleX.value - 180
+                levelScreenViewModel.angleX.value < -10 -> levelScreenViewModel.angleX.value + 180
+                else -> levelScreenViewModel.angleX.value
+            }
+
+            val normalizedX = ((adjustedAngleX - 90f) / 40f).coerceIn(-1.0, 1.0)
+
+            val adjustedAngleY = when {
+                levelScreenViewModel.angleY.value > 100 -> levelScreenViewModel.angleY.value - 180
+                levelScreenViewModel.angleY.value < -100 -> levelScreenViewModel.angleY.value + 180
+                else -> levelScreenViewModel.angleY.value
+            }
+
+            val normalizedY = (adjustedAngleY / 20f).coerceIn(-1.0, 1.0)
+
+
+            Slider(
+                value = normalizedX.toFloat(),
+                onValueChange = {},
+                valueRange = -1f..1f,
+                enabled = false,
                 modifier = Modifier
-                    .size(width = 200.dp, height = 2.dp)
-                    .background(Color.Gray)
+                    .fillMaxWidth(0.8f)
                     .align(Alignment.Center)
+                    .padding(vertical = 8.dp)
+                    .rotate(90f)
+                    .alpha(if (levelScreenViewModel.isVertical.value) 1f else 0f)
             )
 
-            // Vertikale Linie
-            Box(
-                modifier = Modifier
-                    .size(width = 2.dp, height = 200.dp)
-                    .background(Color.Gray)
-                    .align(Alignment.Center)
-            )
+            if (!levelScreenViewModel.isVertical.value) {
+                Slider(
+                    value = normalizedY.toFloat(),
+                    onValueChange = {},
+                    valueRange = -1f..1f,
+                    enabled = false,
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .align(Alignment.Center)
+                        .padding(vertical = 8.dp)
+                )
+            }
 
-            // Zentrale Box
             Box(
                 modifier = Modifier
-                    .size(20.dp)
-                    .border(1.dp, Color.Black)
+                    .size(30.dp)
+                    .border(2.dp, Color.White, RoundedCornerShape(8.dp))
                     .align(Alignment.Center)
-            )
-
-            // Grüne Box, die sich entlang der Achse bewegt
-            Box(
-                modifier = Modifier
-                    .size(10.dp)
-                    .background(Color.Green)
-                    .align(Alignment.Center)
-                    .offset(
-                        x = if (!levelScreenViewModel.isVertical.value) offset.value.dp else 0.dp,
-                        y = if (levelScreenViewModel.isVertical.value) offset.value.dp else 0.dp
-                    )
             )
         }
     }
