@@ -40,7 +40,7 @@ fun DistanceItem(
                     .padding(8.dp)
             )
             Text(
-                text = "Distanz: ${distanceItemEntity.distance}",
+                text = "Distanz: ${"%.2f".format(distanceItemEntity.distance)} cm",
                 modifier = Modifier
                     .padding(8.dp)
             )

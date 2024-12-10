@@ -23,7 +23,7 @@ class DistanceScreenViewModel() : ViewModel() {
         val dy = endPosition.y - startPosition.y
         val dz = endPosition.z - startPosition.z
 
-        val numberOfPoints = (calculateDistance(startPosition,endPosition) / 5).toInt()
+        val numberOfPoints = (calculateDistance(startPosition, endPosition) / 5).toInt().coerceIn(0, 25)
 
         val stepX = dx / numberOfPoints
         val stepY = dy / numberOfPoints

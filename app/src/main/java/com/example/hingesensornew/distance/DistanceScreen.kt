@@ -156,7 +156,7 @@ fun DistanceScreen(distanceScreenViewModel: DistanceScreenViewModel, onClick: ()
         contentAlignment = Alignment.TopCenter
     ) {
         Text(
-            text = "Distanz: $distance",
+            text = "Distanz: ${"%.2f".format(distance)} cm", // Formatierung direkt in der Textinterpolation
             color = Color.White,
             style = TextStyle(fontSize = 32.sp)
         )
