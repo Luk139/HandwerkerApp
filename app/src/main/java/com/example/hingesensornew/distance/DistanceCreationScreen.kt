@@ -36,7 +36,7 @@ fun DistanceCreationScreen(
     val nameState = remember { mutableStateOf(TextFieldValue()) }
     Column(modifier = Modifier.padding(8.dp)) {
         Text(
-            text = "Distance Name:",
+            text = "Distanz Name:",
             fontSize = 24.sp,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -67,7 +67,7 @@ fun DistanceCreationScreen(
                     .width(150.dp)
                     .height(60.dp)
             ) {
-                Text(text = "Create", fontSize = 18.sp)
+                Text(text = "Erstellen", fontSize = 18.sp)
             }
             Button(
                 onClick = { navController.navigate(Routes.DISTANCE.value) },
@@ -76,7 +76,7 @@ fun DistanceCreationScreen(
                     .width(150.dp)
                     .height(60.dp)
             ) {
-                Text(text = "Cancel", fontSize = 18.sp)
+                Text(text = "Abbrechen", fontSize = 18.sp)
             }
         }
 

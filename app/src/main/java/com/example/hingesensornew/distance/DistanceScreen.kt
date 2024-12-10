@@ -156,7 +156,7 @@ fun DistanceScreen(distanceScreenViewModel: DistanceScreenViewModel, onClick: ()
         contentAlignment = Alignment.TopCenter
     ) {
         Text(
-            text = "Distance: $distance",
+            text = "Distanz: $distance",
             color = Color.White,
             style = TextStyle(fontSize = 32.sp)
         )
@@ -178,7 +178,7 @@ fun DistanceScreen(distanceScreenViewModel: DistanceScreenViewModel, onClick: ()
                     .padding(16.dp)
             ) {
                 Text(
-                    text = "Save Distance",
+                    text = "Speicher Distanz",
                     color = Color.Black,
                     style = TextStyle(fontSize = 18.sp)
                 )

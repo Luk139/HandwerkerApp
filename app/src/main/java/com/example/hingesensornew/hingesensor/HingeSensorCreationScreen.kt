@@ -36,7 +36,7 @@ fun HingeSensorCreationScreen(
     val nameState = remember { mutableStateOf(TextFieldValue()) }
     Column(modifier = Modifier.padding(8.dp)) {
         Text(
-            text = "Angle Name:",
+            text = "Winkel Name:",
             fontSize = 24.sp,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -67,7 +67,7 @@ fun HingeSensorCreationScreen(
                     .width(150.dp)
                     .height(60.dp)
             ) {
-                Text(text = "Create", fontSize = 18.sp)
+                Text(text = "Erstellen", fontSize = 18.sp)
             }
             Button(
                 onClick = {navController.navigate(Routes.HINGE_SENSOR.value)},
@@ -76,7 +76,7 @@ fun HingeSensorCreationScreen(
                     .width(150.dp)
                     .height(60.dp)
             ) {
-                Text(text = "Cancel", fontSize = 18.sp)
+                Text(text = "Abbrechen", fontSize = 18.sp)
             }
         }
     }
