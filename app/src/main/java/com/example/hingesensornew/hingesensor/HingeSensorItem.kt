@@ -40,7 +40,7 @@ fun HingeSensorItem(
                     .padding(8.dp)
             )
             Text(
-                text = "Angle: ${hingeSensorItemEntity.angleDegree}°",
+                text = "Winkel: ${hingeSensorItemEntity.angleDegree}°",
                 modifier = Modifier
                     .padding(8.dp)
             )
