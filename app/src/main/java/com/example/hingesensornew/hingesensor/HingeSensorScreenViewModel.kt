@@ -1,18 +1,12 @@
 package com.example.hingesensornew.hingesensor
 
-import android.content.Context
-import android.content.Intent
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.os.Bundle
 import android.os.CountDownTimer
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.ViewModel
 
 
@@ -35,6 +29,7 @@ class HingeSensorScreenViewModel(var sensorManager: SensorManager) : SensorEvent
     public fun startCalibration() {
         isCalibratingState.value = true
         countdownTextState.value = "Countdown: 3"
+        currentAngleState.value = 180
 
         object : CountDownTimer(3000, 1000) {
             override fun onTick(millisUntilFinished: Long) {

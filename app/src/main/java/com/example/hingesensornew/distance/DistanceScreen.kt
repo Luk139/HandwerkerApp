@@ -1,7 +1,6 @@
 package com.example.hingesensornew.distance
 
 import android.view.MotionEvent
-import android.widget.Button
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,7 +8,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,13 +20,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.android.filament.Engine
 import com.google.ar.core.Config
 import com.google.ar.core.Frame
 import io.github.sceneview.ar.ARScene
-import io.github.sceneview.loaders.MaterialLoader
 import io.github.sceneview.math.Position
-import io.github.sceneview.node.Node
 import io.github.sceneview.node.SphereNode
 import io.github.sceneview.rememberCollisionSystem
 import io.github.sceneview.rememberEngine
@@ -39,7 +34,7 @@ import io.github.sceneview.rememberScene
 import io.github.sceneview.rememberView
 
 @Composable
-fun DistanceScreen(distanceScreenViewMode: DistanceScreenViewModel, onClick: () -> Unit) {
+fun DistanceScreen(distanceScreenViewModel: DistanceScreenViewModel, onClick: () -> Unit) {
     val engine = rememberEngine()
     val view = rememberView(engine)
     val renderer = rememberRenderer(engine)
@@ -53,9 +48,6 @@ fun DistanceScreen(distanceScreenViewMode: DistanceScreenViewModel, onClick: () 
     var distance by remember { mutableStateOf<Float>(0f) }
 
     val nodes = rememberNodes()
-
-    // Variable für die Linie
-    var lineNode: Node? by remember { mutableStateOf(null) }
 
     ARScene(
         modifier = Modifier.fillMaxSize(),
@@ -85,7 +77,6 @@ fun DistanceScreen(distanceScreenViewMode: DistanceScreenViewModel, onClick: () 
                     )
 
                     if (spherePositions.size < 2) {
-                        // Füge einen neuen Punkt hinzu
                         val newSphere = SphereNode(
                             engine = engine,
                             radius = 0.025f,
@@ -102,15 +93,13 @@ fun DistanceScreen(distanceScreenViewMode: DistanceScreenViewModel, onClick: () 
                         spherePositions.add(positionInFrontOfCamera)
 
                         if (spherePositions.size == 2) {
-                            // Berechne die Distanz
-                            distance = distanceScreenViewMode.calculateDistance(spherePositions[0], spherePositions[1])
+                            distance = distanceScreenViewModel.calculateDistance(spherePositions[0], spherePositions[1])
 
-                            // Erstelle eine Linie zwischen den Punkten
-                            distanceScreenViewMode.drawLineBetweenPoints(engine, nodes, materialLoader, spherePositions[0], spherePositions[1])
+                            distanceScreenViewModel.drawLineBetweenPoints(engine, nodes, materialLoader, spherePositions[0], spherePositions[1])
                         }
                     } else {
-                        // Entferne den ersten Punkt und ersetze ihn durch den neuen
-                        spherePositions[0] = positionInFrontOfCamera
+                        spherePositions[0] = spherePositions[1]
+                        spherePositions[1] = positionInFrontOfCamera
                         val firstSphere = nodes.firstOrNull() as? SphereNode
                         firstSphere?.let {
                             nodes.remove(it)
@@ -128,13 +117,14 @@ fun DistanceScreen(distanceScreenViewMode: DistanceScreenViewModel, onClick: () 
                         ).apply {
                             transform(position = positionInFrontOfCamera)
                         }
-                        nodes.add(newSphere)
+                        nodes.add(1, newSphere)
 
-                        // Berechne erneut die Distanz
-                        distance = distanceScreenViewMode.calculateDistance(spherePositions[0], spherePositions[1])
+                        distance = distanceScreenViewModel.calculateDistance(spherePositions[0], spherePositions[1])
 
-                        // Aktualisiere die Linie
-                        distanceScreenViewMode.drawLineBetweenPoints(engine, nodes, materialLoader, spherePositions[0], spherePositions[1])
+
+                        nodes.removeRange(2, nodes.size)
+
+                        distanceScreenViewModel.drawLineBetweenPoints(engine, nodes, materialLoader, spherePositions[0], spherePositions[1])
                     }
                 }
                 return@ARScene true
@@ -144,7 +134,6 @@ fun DistanceScreen(distanceScreenViewMode: DistanceScreenViewModel, onClick: () 
         onSessionUpdated = { _, frame -> currentFrame = frame }
     )
 
-    // Marker in der Mitte der Ansicht
     Canvas(modifier = Modifier.fillMaxSize()) {
         val canvasWidth = size.width
         val canvasHeight = size.height
@@ -159,7 +148,6 @@ fun DistanceScreen(distanceScreenViewMode: DistanceScreenViewModel, onClick: () 
         )
     }
 
-    // Text für die angezeigte Distanz
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -174,7 +162,6 @@ fun DistanceScreen(distanceScreenViewMode: DistanceScreenViewModel, onClick: () 
         )
     }
 
-    // Save Distance Button - Zentrisch am unteren Bildschirmrand
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -182,7 +169,7 @@ fun DistanceScreen(distanceScreenViewMode: DistanceScreenViewModel, onClick: () 
             .offset(y = 0.dp),
         contentAlignment = Alignment.BottomCenter
     ) {
-        if(distance!=0f) {
+        if (distance != 0f) {
             Button(
                 onClick = {
                     onClick()
@@ -199,5 +186,8 @@ fun DistanceScreen(distanceScreenViewMode: DistanceScreenViewModel, onClick: () 
         }
     }
 }
+
+
+
 
 

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <!-- Text oben für Neigung -->
+    <TextView
+        android:id="@+id/angleText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Neigung: X=0°, Y=0°"
+        android:textSize="24sp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"/>
+
+    <!-- Horizontale Linie -->
+    <View
+        android:layout_width="200dp"
+        android:layout_height="2dp"
+        android:background="#808080"
+        android:layout_centerInParent="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="100dp"/>
+
+    <!-- Vertikale Linie -->
+    <View
+        android:layout_width="2dp"
+        android:layout_height="200dp"
+        android:background="#808080"
+        android:layout_centerInParent="true"
+        android:layout_marginTop="100dp"/>
+
+    <!-- Zentrale Box -->
+    <View
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_centerInParent="true"
+        android:layout_marginTop="100dp"
+        android:background="#000000"/>
+
+    <!-- Grüne Box -->
+    <View
+        android:id="@+id/greenBox"
+        android:layout_width="10dp"
+        android:layout_height="10dp"
+        android:layout_centerInParent="true"
+        android:layout_marginTop="100dp"
+        android:background="#00FF00"/>
+</RelativeLayout>

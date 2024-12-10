@@ -1,7 +1,6 @@
 package com.example.hingesensornew.distance
 
-import android.content.Context
-import android.hardware.SensorEventListener
+import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import com.google.android.filament.Engine
@@ -10,8 +9,7 @@ import io.github.sceneview.math.Position
 import io.github.sceneview.node.Node
 import io.github.sceneview.node.SphereNode
 
-class DistanceScreenViewModel() : ViewModel()
-{
+class DistanceScreenViewModel() : ViewModel() {
     var distance = 0f
 
     fun drawLineBetweenPoints(
@@ -21,45 +19,38 @@ class DistanceScreenViewModel() : ViewModel()
         startPosition: Position,
         endPosition: Position
     ) {
-        // Berechne die Distanz und die Richtung zwischen den beiden Punkten
         val dx = endPosition.x - startPosition.x
         val dy = endPosition.y - startPosition.y
         val dz = endPosition.z - startPosition.z
 
-        val distance = Math.sqrt((dx * dx + dy * dy + dz * dz).toDouble()).toFloat()
+        val numberOfPoints = (calculateDistance(startPosition,endPosition) / 5).toInt()
 
-        // Berechne die Anzahl der Kreise, die entlang der Strecke platziert werden (10 Kreise für je 50 cm)
-        val numberOfCircles = (distance / 50f).toInt() * 10
+        val stepX = dx / numberOfPoints
+        val stepY = dy / numberOfPoints
+        val stepZ = dz / numberOfPoints
 
-        // Berechne die Inkremente für die Positionierung der Kreise entlang der Linie
-        val stepX = dx / numberOfCircles
-        val stepY = dy / numberOfCircles
-        val stepZ = dz / numberOfCircles
-
-        // Erstelle die Kreise und platziere sie entlang der Linie
-        for (i in 0 until numberOfCircles) {
-            // Berechne die Position des aktuellen Kreises
+        for (i in 0.until(numberOfPoints)) {
+            // Berechne die Position des aktuellen Punktes
             val currentX = startPosition.x + stepX * i
             val currentY = startPosition.y + stepY * i
             val currentZ = startPosition.z + stepZ * i
 
-            // Erstelle einen kleinen Kreis als SphereNode
+            Log.d("Position", "X: $currentX, Y: $currentY, Z: $currentZ")
+
             val circle = SphereNode(
                 engine = engine,
-                radius = 0.5f,  // kleiner Kreis
+                radius = 0.01f,
                 materialInstance = materialLoader.createColorInstance(
-                    color = Color.Yellow,  // Farbe der Kreise
+                    color = Color.Yellow,
                     metallic = 0.0f,
                     roughness = 0.0f,
                     reflectance = 0.0f
                 )
             ).apply {
-                // Positioniere den Kreis entlang der Linie
                 transform(position = Position(currentX, currentY, currentZ))
             }
 
-            // Füge den Kreis zur Liste der Knoten hinzu
-            nodes.add(circle)
+            nodes.add(2 + i, circle)
         }
     }
 
@@ -76,3 +67,5 @@ class DistanceScreenViewModel() : ViewModel()
         return distance
     }
 }
+
+
